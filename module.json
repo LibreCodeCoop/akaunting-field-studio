@@ -1,0 +1,18 @@
+{
+    "alias": "field-studio",
+    "icon": "tune",
+    "version": "0.2.0",
+    "active": 1,
+    "providers": [
+        "Modules\\FieldStudio\\Providers\\Main"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "reports": [],
+    "widgets": [],
+    "settings": [],
+    "routes": {
+        "redirect_after_install": "field-studio.definitions.index"
+    }
+}
