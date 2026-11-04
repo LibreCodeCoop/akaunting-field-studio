@@ -1,18 +1,30 @@
 <!-- SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors -->
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-# Contribuição
+# Contributing
 
-A LibreCode acolhe correções e melhorias para o Field Studio.
+Contributions to Field Studio are welcome.
 
-## Como contribuir
+## Pull requests
 
-Antes de abrir uma alteração, verifique se existe uma issue correspondente. Defina o comportamento esperado, os riscos de segurança e pelo menos um teste positivo e um teste negativo. Não inclua credenciais, informações privadas, dumps financeiros ou screenshots de clientes.
+Review existing issues before starting changes. Describe the intended behavior, security implications, and at least one positive and one negative test case. Never commit credentials, private customer data, financial database dumps, or screenshots from real installations.
 
-Trabalhe em branch dedicada e abra pull request para revisão humana. As alterações devem usar commits [Conventional Commits](https://www.conventionalcommits.org/) e DCO com trailer \`Signed-off-by\` correspondente ao autor real, além de assinatura criptográfica. Evite squash automático. Nunca force push em branches protegidas.
+Use a feature branch and open a pull request for human review. Commits must follow [Conventional Commits](https://www.conventionalcommits.org/), include a DCO `Signed-off-by` trailer matching the actual author, and carry a verifiable cryptographic signature. Do not automatically squash commits.
 
-Teste a sintaxe PHP, a integridade dos arquivos JSON, os testes E2E do ambiente descartável e os checks de licenciamento antes de pedir revisão. Consulte [desenvolvimento](docs/development.md) para comandos.
+Run the PHP syntax checks, JSON validation, REUSE licensing check, and applicable disposable-environment integration tests before requesting review. See [Development and testing](docs/development.md).
 
-## Como relatar vulnerabilidades
+## Quality and security
 
-Não publique PoCs de segurança que exponham dados. Use o canal privado indicado em [SECURITY.md](SECURITY.md).
+Verify the definition and value CRUD, all supported types, validation failures, authorization boundaries, company isolation, and the native invoice form before submitting changes. The end-to-end runner must never modify production data. See [Development and testing](docs/development.md) and [Operations and rollback](docs/operations.md).
+
+For vulnerability reports, use [private GitHub security advisories](https://github.com/LibreCodeCoop/akaunting-field-studio/security/advisories) instead of public issues. See [SECURITY.md](SECURITY.md).
+
+## Translating the interface
+
+English (`en-GB`) is the reference language. Add new human-facing strings to the module's translation catalogs, keeping keys and placeholders consistent with the Brazilian Portuguese (`pt-BR`) catalog. Do not hardcode text in Blade templates, controllers, validation errors, or JavaScript.
+
+Run `php tests/i18n-check.php` and verify both locales in the browser.
+
+## Reporting vulnerabilities
+
+Use the private reporting channel in [SECURITY.md](SECURITY.md). Do not disclose exploit details in public issues.
