@@ -1,0 +1,14 @@
+{
+    "name": "librecodecoop/akaunting-field-studio",
+    "description": "Field Studio: flexible, secure, API-first metadata for Akaunting",
+    "type": "akaunting-module",
+    "license": "AGPL-3.0-or-later",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\FieldStudio\\": "./"
+        }
+    }
+}
