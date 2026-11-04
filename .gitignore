@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+vendor/
+node_modules/
+coverage/
+.cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
+storage/
+.DS_Store
+*.log
+*.sqlite
+*.sql
+*.sql.gz
+*.zip
+*.tar
+*.tar.gz
+playwright-report/
+test-results/
+screenshots/
