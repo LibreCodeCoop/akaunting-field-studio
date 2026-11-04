@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version = 1
+SPDX-PackageName = "Field Studio for Akaunting"
+SPDX-PackageSupplier = "LibreCode Coop"
+SPDX-PackageDownloadLocation = "https://github.com/LibreCodeCoop/akaunting-field-studio/"
+
+[[annotations]]
+path = [
+    "composer.json",
+    "module.json",
+    "Resources/views/*.blade.php"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 LibreCode Coop and contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
