@@ -1,89 +1,95 @@
 <!-- SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors -->
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-# API REST do Field Studio
+# Field Studio REST API
 
-O módulo publica uma API HTTP/JSON autenticada que reutiliza a seleção de empresa e as permissões do Akaunting.
+Field Studio exposes an authenticated JSON API. It reuses Akaunting's company selection and access control.
 
-Base: \`/api/v1/field-studio\`.
+**Base path:** `/api/v1/field-studio`
 
-A autenticação é a mesma configurada pela instância do Akaunting. Para Basic Auth ou outro mecanismo aceito pelo servidor, envie um header \`X-Company: 1\` ou o parâmetro \`?company_id=1\`, desde que o usuário tenha acesso àquela empresa. Contas com token OAuth vinculado a uma empresa preservam essa restrição. **Não envie dados de empresas em produção para testes.**
+Use the authentication configured in your Akaunting installation. Supply `X-Company: 1` or `?company_id=1` when applicable, and only select a company that the caller is authorized to access. Company-scoped OAuth tokens retain their associated restrictions.
 
-## Definições
+## Field definitions
 
-| Método | Recurso | Resultado |
+| Method | Path | Behavior |
 | --- | --- | --- |
-| GET | /definitions | Lista ativa de campos, opcionalmente por \`entity_type\` |
-| POST | /definitions | Cria definição, HTTP 201 |
-| GET | /definitions/{id} | Obtém definição |
-| PUT / PATCH | /definitions/{id} | Altera campos informados; \`expected_version\` recomendado |
-| DELETE | /definitions/{id} | Arquiva definição, HTTP 204; histórico preservado |
+| GET | /definitions | List non-archived definitions, optionally filtered by `entity_type` |
+| POST | /definitions | Create a field definition; HTTP 201 |
+| GET | /definitions/{id} | Read a definition |
+| PUT / PATCH | /definitions/{id} | Update supplied attributes; `expected_version` recommended |
+| DELETE | /definitions/{id} | Archive a definition; HTTP 204 (preserves values and history) |
 
-Exemplo de criação:
+Example request body:
 
 ~~~json
 {
   "entity_type": "invoice",
-  "field_key": "centro_custo",
-  "label": "Centro de custo",
+  "field_key": "cost_center",
+  "label": "Cost center",
   "field_type": "select",
-  "options": ["Operações", "Comercial", "Administração"],
-  "description": "Área que responde pela despesa",
+  "options": ["Operations", "Sales", "Administration"],
+  "description": "Department responsible for this invoice",
   "is_visible": true,
   "is_required": true,
   "is_enabled": true,
-  "default_value": "Operações",
+  "default_value": "Operations",
   "sort_order": 10,
   "column_span": 3
 }
 ~~~
 
-\`entity_type\` e \`field_key\` são imutáveis depois da criação. A chave é exclusiva dentro da combinação empresa + entidade; arquivar não libera a chave. Altere o tipo de um campo somente enquanto ele não possuir valores gravados. Opções já utilizadas não podem ser removidas.
+The combination of company, entity type, and field key is unique. The `entity_type` and `field_key` are immutable after creation, and archiving a definition does not free its key for reuse. A type cannot change when there are stored values. Selection options already used by records cannot be removed.
 
-Os tipos suportados são \`text\`, \`textarea\`, \`email\`, \`url\`, \`integer\`, \`decimal\`, \`percent\`, \`date\`, \`time\`, \`datetime\`, \`boolean\`, \`select\`, \`multiselect\` e \`contact\`.
+Supported field types: `text`, `textarea`, `email`, `url`, `integer`, `decimal`, `percent`, `date`, `time`, `datetime`, `boolean`, `select`, `multiselect`, and `contact`.
 
-## Valores associados a registros
+## Record values
 
-| Método | Recurso | Comportamento |
+| Method | Path | Behavior |
 | --- | --- | --- |
-| GET | /records/{entity_type}/{entity_id}/values | Obtém campos e valores existentes/defaults |
-| POST / PATCH | /records/{entity_type}/{entity_id}/values | Criação ou atualização parcial de valores |
-| PUT | /records/{entity_type}/{entity_id}/values | Substitui a representação: omissões opcionais apagam valores, omissões obrigatórias dão 422 |
-| DELETE | /records/{entity_type}/{entity_id}/values/{field_key} | Apaga apenas o valor do campo |
-| GET | /records?entity_type=invoice&field_key=centro_custo&value=Operações | Retorna IDs de registros cujo valor corresponde exatamente |
-| GET | /audit?entity_type=invoice&entity_id=123 | Consulta histórico auditável |
+| GET | /records/{entity_type}/{entity_id}/values | Read definitions and current/default values |
+| POST / PATCH | /records/{entity_type}/{entity_id}/values | Create or partially update supplied values |
+| PUT | /records/{entity_type}/{entity_id}/values | Replace the full set: omitted optional fields are cleared, omitted required fields return 422 |
+| DELETE | /records/{entity_type}/{entity_id}/values/{field_key} | Remove a single value |
+| GET | /records?entity_type=invoice&field_key=cost_center&value=Operations | Search for record IDs with an exact value |
+| GET | /audit?entity_type=invoice&entity_id=123 | Read audit events for a record |
 
-Entidades: \`invoice\`, \`bill\`, \`transaction\`, \`contact\`, \`item\`, \`document_item\`.
+Entity types: `invoice`, `bill`, `transaction`, `contact`, `item`, and `document_item`.
 
-Exemplo PATCH:
+Example PATCH request:
 
 ~~~json
 {
   "values": {
-    "centro_custo": "Comercial",
-    "competencia": "2026-11",
-    "taxa_administrativa": "27.450000"
+    "cost_center": "Sales",
+    "admin_fee": "27.450000"
   },
   "versions": {
-    "centro_custo": 1
+    "cost_center": 1
   }
 }
 ~~~
 
-Os números decimais são **strings**, sem operações de ponto flutuante, com até seis casas. Porcentagens vão de 0 a 100. \`date\` usa \`YYYY-MM-DD\`, \`time\` usa \`HH:MM\` ou \`HH:MM:SS\` e \`datetime\` usa \`YYYY-MM-DDTHH:MM\`. \`multiselect\` recebe um array sem duplicatas; \`contact\` recebe o ID de um contato da mesma empresa. A leitura devolve \`is_set\` e \`value_version\` para cada definição.
+- Exact decimals are **strings**, not floating-point numbers, with up to six decimal places. Percentages range from 0 to 100.
+- Dates use `YYYY-MM-DD`, times use `HH:MM` or `HH:MM:SS`, and date-times use `YYYY-MM-DDTHH:MM`.
+- Multiple selection accepts a JSON array without duplicate or invalid options.
+- Contact references use a contact ID belonging to the selected company.
+- Each returned field includes `is_set` and `value_version` for concurrency control.
 
-Se \`versions\` for enviado, uma versão divergente retorna HTTP 409, sem gravar. Uma alteração parcialmente inválida faz a operação inteira falhar na transação. Alterações repetidas com o mesmo valor não criam auditoria artificial.
+When `versions` is supplied, a stale version returns HTTP 409 and does not modify data. Any invalid value rejects the entire transaction. Idempotent writes do not create redundant audit entries.
 
-## Autorização e erros
+## Authentication, authorization, and errors
 
-- **401**: não autenticado
-- **403**: falta de permissão para o registro ou para definições
-- **404**: definição ou registro ausente ou inacessível naquela empresa
-- **409**: escrita concorrente com versão divergente
-- **422**: campos inválidos, opção inválida, dado do tipo errado ou referência externa
+| HTTP status | Meaning |
+| --- | --- |
+| 401 | Authentication required |
+| 403 | Insufficient permission |
+| 404 | Definition or record not found in the selected company |
+| 409 | Version conflict |
+| 422 | Invalid input, type, selection, or reference |
+| 429 | Native Akaunting API rate limit exceeded |
 
-Administrar definições requer acesso às configurações da empresa. Ler ou escrever valores exige permissão equivalente para a entidade original no Akaunting. Para contatos, o módulo diferencia clientes de fornecedores; para linhas, avalia o tipo do documento pai. Uma listagem global de auditoria exige permissão de leitura de configurações.
+Managing definitions requires permission to manage company settings. Reading or editing values requires the corresponding Akaunting record permission. Customer and vendor access is distinguished; line items follow the parent document's access rules. Global audit access requires company settings read permission.
 
-## Segurança de integração
+**Localization:** human-readable validation errors follow the current Akaunting locale when the module provides translations. API paths, JSON attribute names, field keys, entity identifiers, and user-created option values remain stable and are not translated.
 
-Use sempre HTTPS, autenticação com menor privilégio e seleção explícita da empresa. Não armazene credenciais em código, variáveis públicas ou screenshots. Respeite o rate limit nativo do Akaunting; respostas 429 são esperadas sob excesso de chamadas.
+Use HTTPS and least-privileged credentials. Never test mutating endpoints against production data.

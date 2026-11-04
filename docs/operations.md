@@ -1,44 +1,49 @@
 <!-- SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors -->
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-# Operação e reversão
+# Operations and rollback
 
-## Antes de instalar
+## Before installation
 
-1. Identifique a versão do Akaunting, PHP, banco, o prefixo das tabelas e os módulos ativos. Verifique se \`modules/FieldStudio\` não contém código preexistente.
-2. Faça backup consistente do banco e teste sua restauração em ambiente isolado. Faça snapshot dos arquivos existentes, especialmente \`.env\` e dos módulos.
-3. Verifique regras de autenticação e escopo das empresas. Instale e habilite apenas para empresas autorizadas.
-4. Execute o smoke de módulos e NFS-e no ambiente de homologação, pois uma migração pode depender de outra.
-5. Use a revisão ou o release **assinado e aprovado**. Não utilize nomes de branches como substitutos de SHA verificado.
+1. Record the Akaunting, PHP, and database versions, table prefix, and enabled modules. Ensure that `modules/FieldStudio` is not occupied by a different installation.
+2. Make a consistent database backup and verify that it can be restored in an isolated environment. Back up the current application files.
+3. Review authentication settings and authorized company IDs. Enable the module only for companies that need it.
+4. Test the migration, user interface, API, and existing modules (including any fiscal extensions) in a disposable environment.
+5. Deploy an approved, signed commit or release. Verify the exact SHA instead of relying on branch names.
 
-## Instalação
+## Installation
 
-Copie o pacote verificado para \`modules/FieldStudio\`, sem sobrescrever a pasta \`modules/CustomFields\` caso exista. Execute os comandos nativos do Akaunting, substituindo o ID da empresa:
+Copy the validated package into `modules/FieldStudio`. Do not overwrite an existing commercial Custom Fields module.
+
+Run the native Akaunting commands with the appropriate company ID and locale:
 
 ~~~sh
 php artisan module:migrate field-studio --force
-php artisan module:install field-studio 1 pt-BR
+php artisan module:install field-studio 1 en-GB
 php artisan optimize:clear
 php artisan module:list
 php artisan route:list --path=field-studio
 ~~~
 
-Após a instalação, abra **Settings → Field Studio** como administrador e confirme que as páginas são exibidas corretamente. Faça chamadas GET na API autenticada. Em produção, não crie notas ou transações fictícias para smoke.
+Then open **Settings → Field Studio** as an administrator and confirm that the interface follows the active Akaunting language. Check authenticated, read-only API requests. Do not create test invoices or transactions in production.
 
-## Reversão sem perda de dados
+## Rollback without data loss
 
-Se houver incompatibilidade, **desabilite o módulo na empresa**:
+If there is an incompatibility, disable the extension for the affected company:
 
 ~~~sh
-php artisan module:disable field-studio 1 pt-BR
+php artisan module:disable field-studio 1 en-GB
 php artisan optimize:clear
 ~~~
 
-Os registros dos campos permanecem nas tabelas \`lcc_fieldstudio_definitions\`, \`lcc_fieldstudio_values\` e \`lcc_fieldstudio_audits\` com o prefixo do Akaunting. A migração \`down\` foi deliberadamente não destrutiva. **Não execute \`migrate:fresh\`, \`DROP TABLE\` nem \`db:wipe\`**. Restaure o pacote de arquivos anterior somente após confirmar o escopo da reversão. A exclusão definitiva de metadados requer inventário, exportação e aprovação específica.
+The `lcc_fieldstudio_definitions`, `lcc_fieldstudio_values`, and `lcc_fieldstudio_audits` tables remain available, prefixed as configured by Akaunting. The migration's `down` operation is intentionally non-destructive. **Do not use `migrate:fresh`, `DROP TABLE`, or `db:wipe`.**
 
-## Restrições
+Only remove stored metadata after separately approved inventory, export, and retention checks.
 
-- A API segue as permissões e o limite de requisições da aplicação hospedeira.
-- A instalação em uma empresa não atribui automaticamente acesso a outra.
-- O Field Studio não modifica o imposto, o total financeiro ou a transmissão de NFS-e.
-- O suporte a outras versões do Akaunting depende de testes separados.
+## Operational constraints
+
+- Requests obey the host application's authentication, permissions, company selection, and rate limit.
+- Enabling a company does not grant access to another.
+- Localization is selected by the Akaunting user/application locale; field labels and options entered by users are not automatically translated.
+- Field Studio does not change tax amounts, accounting totals, or fiscal document transmission.
+- Compatibility with additional Akaunting versions requires its own test matrix.

@@ -1,16 +1,18 @@
 <!-- SPDX-FileCopyrightText: 2026 LibreCode Coop and contributors -->
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-# Segurança
+# Security policy
 
-## Como relatar uma vulnerabilidade
+## Private vulnerability reporting
 
-Envie uma **denúncia privada** pelo recurso [Report a vulnerability](https://github.com/LibreCodeCoop/akaunting-field-studio/security/advisories/new) do repositório GitHub. Não divulgue detalhes exploráveis em uma issue pública.
+Use [Report a vulnerability](https://github.com/LibreCodeCoop/akaunting-field-studio/security/advisories/new) on GitHub. Do not publish exploitable details in a public issue.
 
-Inclua a versão do Field Studio, do Akaunting, do PHP e do banco, os passos de reprodução com registros sintéticos e o impacto. Não compartilhe credenciais nem dumps de dados financeiros.
+Include your Field Studio, Akaunting, PHP, and database versions; a reproduction using synthetic data; and a description of the impact. Do not share live credentials or financial database dumps.
 
-A manutenção e os prazos de resposta dependem da disponibilidade dos mantenedores e não representam garantia de SLA.
+Maintenance capacity and response times depend on project maintainers; no specific SLA is promised.
 
-## Modelo de segurança
+## Security model
 
-O módulo compartilha autenticação, sessões, permissões e isolamento multiempresa do Akaunting. A camada Field Studio precisa impedir referências entre empresas, aplicar a ACL do registro de origem e impedir gravação parcial após erros de validação. O ambiente de produção deve possuir backups recuperáveis, HTTPS e atualizações de segurança.
+Field Studio relies on Akaunting authentication and authorization while enforcing its own company boundaries, source-record access checks, typed validation, and transactional consistency. Production deployments require working backups, HTTPS, and timely security updates.
+
+API error messages may be localized, but HTTP status codes and permission behavior must be independent of locale.

@@ -1,5 +1,5 @@
 <x-layouts.admin>
-    <x-slot name="title">{{ $field ? 'Editar campo' : 'Novo campo' }} · Field Studio</x-slot>
+    <x-slot name="title">{{ $field ? trans('field-studio::general.definition.edit_title') : trans('field-studio::general.definition.new_title') }} · Field Studio</x-slot>
     <x-slot name="content">
         @php
             $editing = $field !== null;
@@ -15,16 +15,16 @@
             <div class="mb-5">
                 <a class="inline-flex items-center text-sm text-purple" href="{{ route('field-studio.definitions.index') }}">
                     <span class="material-icons-outlined text-sm mr-1" aria-hidden="true">arrow_back</span>
-                    Voltar às configurações
+                    {{ trans('field-studio::general.definition.back') }}
                 </a>
                 <p class="text-sm text-gray-500 mt-3">
-                    Personalize a informação capturada pela empresa sem criar colunas nos documentos financeiros.
+                    {{ trans('field-studio::general.definition.intro') }}
                 </p>
             </div>
 
             @if ($errors->any())
                 <div class="rounded-lg bg-red-50 text-red-700 px-4 py-3 mb-5" role="alert">
-                    <p class="font-medium mb-1">Verifique os campos destacados:</p>
+                    <p class="font-medium mb-1">{{ trans('field-studio::general.definition.error_intro') }}</p>
                     <ul class="list-disc pl-5">
                         @foreach($errors->all() as $error)<li class="text-sm">{{ $error }}</li>@endforeach
                     </ul>
@@ -41,25 +41,25 @@
 
                 <x-form.section>
                     <x-slot name="head">
-                        <x-form.section.head title="Identificação" description="Defina um nome compreensível e o registro onde o campo será exibido." />
+                        <x-form.section.head title="{{ trans('field-studio::general.definition.identification') }}" description="{{ trans('field-studio::general.definition.identification_description') }}" />
                     </x-slot>
                     <x-slot name="body">
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-label">Nome do campo <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-black" for="field-label">{{ trans('field-studio::general.definition.label') }} <span class="text-red-500">*</span></label>
                             <input id="field-label" name="label" required maxlength="180" class="{{ $inputClass }}"
-                                value="{{ old('label', $field['label'] ?? '') }}" placeholder="Ex.: Centro de custo">
-                            <p class="text-xs text-gray-500 mt-1">Será exibido para quem preencher o documento.</p>
+                                value="{{ old('label', $field['label'] ?? '') }}" placeholder="{{ trans('field-studio::general.definition.label_placeholder') }}">
+                            <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.definition.label_help') }}</p>
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-key">Chave de integração <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-black" for="field-key">{{ trans('field-studio::general.definition.key') }} <span class="text-red-500">*</span></label>
                             <input id="field-key" name="field_key" required pattern="[a-z][a-z0-9_]{1,70}"
                                 maxlength="71" class="{{ $inputClass }} font-mono"
                                 value="{{ old('field_key', $field['field_key'] ?? '') }}"
-                                @if($editing) readonly @endif placeholder="Ex.: centro_custo">
-                            <p class="text-xs text-gray-500 mt-1">Usada pela API. Não pode ser alterada após a criação.</p>
+                                @if($editing) readonly @endif placeholder="{{ trans('field-studio::general.definition.key_placeholder') }}">
+                            <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.definition.key_help') }}</p>
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-entity">Onde utilizar <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-black" for="field-entity">{{ trans('field-studio::general.definition.entity') }} <span class="text-red-500">*</span></label>
                             <select id="field-entity" name="entity_type" class="{{ $inputClass }}" @if($editing) disabled @endif>
                                 @foreach($entityLabels as $entity => $name)
                                     <option value="{{ $entity }}" {{ old('entity_type', $field['entity_type'] ?? 'invoice') === $entity ? 'selected' : '' }}>
@@ -67,10 +67,10 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">O campo será exclusivo desta entidade e desta empresa.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.definition.entity_help') }}</p>
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-type">Formato do dado <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-black" for="field-type">{{ trans('field-studio::general.definition.type') }} <span class="text-red-500">*</span></label>
                             <select id="field-type" name="field_type" class="{{ $inputClass }}">
                                 @foreach($typeLabels as $type => $name)
                                     <option value="{{ $type }}" {{ $selectedType === $type ? 'selected' : '' }}>
@@ -78,50 +78,50 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1" id="field-type-description">A validação acompanha o formato escolhido.</p>
+                            <p class="text-xs text-gray-500 mt-1" id="field-type-description">{{ trans('field-studio::general.definition.type_help') }}</p>
                         </div>
                     </x-slot>
                 </x-form.section>
 
                 <x-form.section>
                     <x-slot name="head">
-                        <x-form.section.head title="Preenchimento" description="Configure ajuda contextual, opções e valores sugeridos." />
+                        <x-form.section.head title="{{ trans('field-studio::general.definition.filling') }}" description="{{ trans('field-studio::general.definition.filling_description') }}" />
                     </x-slot>
                     <x-slot name="body">
                         <div id="field-options" class="sm:col-span-6">
-                            <label class="block text-sm font-medium text-black" for="field-options-input">Opções disponíveis <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-black" for="field-options-input">{{ trans('field-studio::general.definition.options') }} <span class="text-red-500">*</span></label>
                             <textarea id="field-options-input" name="options_text" rows="5" class="{{ $inputClass }}"
-                                placeholder="Operações&#10;Administração&#10;Comercial">{{ old('options_text', implode("\n", $field['options'] ?? [])) }}</textarea>
-                            <p class="text-xs text-gray-500 mt-1">Uma opção por linha. Não remova opções já utilizadas nos registros.</p>
+                                placeholder="{{ trans('field-studio::general.definition.options_placeholder') }}">{{ old('options_text', implode("\n", $field['options'] ?? [])) }}</textarea>
+                            <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.definition.options_help') }}</p>
                         </div>
                         <div class="sm:col-span-6">
-                            <label class="block text-sm font-medium text-black" for="field-description">Texto de ajuda</label>
+                            <label class="block text-sm font-medium text-black" for="field-description">{{ trans('field-studio::general.definition.description') }}</label>
                             <textarea id="field-description" name="description" rows="2" maxlength="2000" class="{{ $inputClass }}"
-                                placeholder="Explique como preencher este campo">{{ old('description', $field['description'] ?? '') }}</textarea>
+                                placeholder="{{ trans('field-studio::general.definition.description_placeholder') }}">{{ old('description', $field['description'] ?? '') }}</textarea>
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-placeholder">Exemplo no campo</label>
+                            <label class="block text-sm font-medium text-black" for="field-placeholder">{{ trans('field-studio::general.definition.placeholder') }}</label>
                             <input id="field-placeholder" name="placeholder" maxlength="255" class="{{ $inputClass }}"
-                                value="{{ old('placeholder', $field['placeholder'] ?? '') }}" placeholder="Ex.: Projeto Alfa">
+                                value="{{ old('placeholder', $field['placeholder'] ?? '') }}" placeholder="{{ trans('field-studio::general.definition.placeholder_example') }}">
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-sm font-medium text-black" for="field-default">Valor inicial (opcional)</label>
+                            <label class="block text-sm font-medium text-black" for="field-default">{{ trans('field-studio::general.definition.default') }}</label>
                             <input id="field-default" name="default_value" class="{{ $inputClass }}"
                                 value="{{ is_array($defaultValue) ? implode(', ', $defaultValue) : $defaultValue }}">
-                            <p class="text-xs text-gray-500 mt-1">Para seleção múltipla, separe os valores por vírgula.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.definition.default_help') }}</p>
                         </div>
                     </x-slot>
                 </x-form.section>
 
                 <x-form.section>
                     <x-slot name="head">
-                        <x-form.section.head title="Apresentação e regras" description="Controle visibilidade, preenchimento obrigatório e disposição do campo." />
+                        <x-form.section.head title="{{ trans('field-studio::general.definition.presentation') }}" description="{{ trans('field-studio::general.definition.presentation_description') }}" />
                     </x-slot>
                     <x-slot name="body">
                         <div class="sm:col-span-3">
-                            <label for="field-span" class="block text-sm font-medium text-black">Largura do campo</label>
+                            <label for="field-span" class="block text-sm font-medium text-black">{{ trans('field-studio::general.definition.width') }}</label>
                             <select id="field-span" name="column_span" class="{{ $inputClass }}">
-                                @foreach([6 => 'Largura completa', 3 => 'Metade da linha', 2 => 'Um terço da linha'] as $span => $label)
+                                @foreach(trans('field-studio::general.definition.widths') as $span => $label)
                                     <option value="{{ $span }}" {{ (int) old('column_span', $field['column_span'] ?? 6) === $span ? 'selected' : '' }}>
                                         {{ $label }}
                                     </option>
@@ -129,23 +129,19 @@
                             </select>
                         </div>
                         <div class="sm:col-span-6 space-y-4 pt-2">
-                            @foreach([
-                                'is_required' => ['Preenchimento obrigatório', 'O formulário exigirá valor válido quando este campo for enviado.'],
-                                'is_visible' => ['Visível nos formulários', 'Mostra o campo nas telas de lançamento onde existe integração.'],
-                                'is_enabled' => ['Campo ativo', 'Permite novas gravações pela API ou pela interface.'],
-                            ] as $key => $description)
+                            @foreach(trans('field-studio::general.definition.flags') as $key => $description)
                                 <label class="flex items-start gap-3 cursor-pointer">
                                     <input type="checkbox" name="{{ $key }}" value="1" class="mt-1 accent-purple"
                                         {{ old($key, $field[$key] ?? ($key !== 'is_required')) ? 'checked' : '' }}>
                                     <span>
-                                        <span class="block text-sm font-medium text-black">{{ $description[0] }}</span>
-                                        <span class="block text-xs text-gray-500 mt-0.5">{{ $description[1] }}</span>
+                                        <span class="block text-sm font-medium text-black">{{ $description['label'] }}</span>
+                                        <span class="block text-xs text-gray-500 mt-0.5">{{ $description['help'] }}</span>
                                     </span>
                                 </label>
                             @endforeach
                         </div>
                         <div class="sm:col-span-3">
-                            <label for="field-order" class="block text-sm font-medium text-black">Ordem</label>
+                            <label for="field-order" class="block text-sm font-medium text-black">{{ trans('field-studio::general.definition.order') }}</label>
                             <input id="field-order" type="number" min="0" max="100000" name="sort_order" class="{{ $inputClass }}"
                                 value="{{ old('sort_order', $field['sort_order'] ?? 0) }}">
                         </div>
@@ -156,9 +152,9 @@
                     <x-slot name="foot">
                         <div class="flex flex-wrap gap-3 items-center pb-5">
                             <button type="submit" id="field-save" class="px-6 py-2.5 text-white bg-green hover:bg-green-700 rounded-lg">
-                                {{ $editing ? 'Salvar alterações' : 'Criar campo' }}
+                                {{ $editing ? trans('field-studio::general.definition.save') : trans('field-studio::general.definition.create') }}
                             </button>
-                            <a class="text-sm text-purple px-3" href="{{ route('field-studio.definitions.index') }}">Cancelar</a>
+                            <a class="text-sm text-purple px-3" href="{{ route('field-studio.definitions.index') }}">{{ trans('field-studio::general.definition.cancel') }}</a>
                         </div>
                     </x-slot>
                 </x-form.section>
@@ -174,25 +170,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const typeInput = document.getElementById('field-type');
     const options = document.getElementById('field-options');
     const typeHint = document.getElementById('field-type-description');
-    const hints = {
-        decimal: 'Informe números decimais com ponto e até seis casas. Ex.: 123.450000',
-        percent: 'Percentual de 0 a 100. Ex.: 27.450000',
-        date: 'Data no formato AAAA-MM-DD.',
-        time: 'Horário no formato HH:MM.',
-        datetime: 'Data e horário no formato AAAA-MM-DDTHH:MM.',
-        boolean: 'Sim ou não.',
-        select: 'O usuário escolherá uma das opções informadas.',
-        multiselect: 'O usuário poderá selecionar várias opções.',
-        contact: 'Referência a um contato cadastrado nesta empresa.',
-        email: 'Validação de endereço de e-mail.',
-        url: 'Endereço web HTTP ou HTTPS.',
-        textarea: 'Campo de texto longo.'
-    };
+    const hints = @json(trans('field-studio::general.type_hints'));
 
     function refresh() {
         const type = typeInput.value;
         options.hidden = type !== 'select' && type !== 'multiselect';
-        typeHint.textContent = hints[type] || 'Texto livre, conforme as regras definidas.';
+        typeHint.textContent = hints[type] || hints.default;
     }
     typeInput.addEventListener('change', refresh);
     refresh();

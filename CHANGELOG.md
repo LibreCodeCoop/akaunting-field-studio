@@ -3,14 +3,19 @@
 
 # Changelog
 
-Mudanças de versões publicadas serão registradas neste arquivo.
+Public releases will be recorded here.
 
 ## Unreleased
 
-- Inicialização do Field Studio como módulo independente do Akaunting.
-- Definições de campos por empresa e interface em Settings.
-- API REST com validação, concorrência, autorização e auditoria.
-- Integração com formulários de documentos e editores de valores.
-- Testes HTTP, segurança e navegador em ambiente descartável.
+- Make English the language of public project documentation.
+- Localize configuration pages, record forms, in-context links, confirmation messages, validation errors, and JavaScript hints using Akaunting's active locale.
+- Add localization parity checks and regression coverage for English and Brazilian Portuguese.
 
-Nenhum release publicado é presumido por este registro.
+## Initial implementation (unreleased)
+
+- Introduce independent Field Studio module for Akaunting.
+- Add company-scoped definitions, values, settings navigation, and audit history.
+- Add authenticated REST CRUD with validation, concurrency control, and authorization.
+- Integrate with native financial forms and add API/browser tests.
+
+This changelog does not imply a published release.

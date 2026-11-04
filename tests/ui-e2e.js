@@ -27,6 +27,19 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
     page.setDefaultTimeout(12000);
     const checks = [];
     const pass = name => { checks.push(name); console.log('PASS: ' + name); };
+    const locale = process.env.FS_TEST_LOCALE || 'en-GB';
+    const localeTexts = {
+        'en-GB': { heading: 'Customize your records', add: 'Add field', fieldName: 'Field name',
+            edit: 'Edit', saveValues: 'Save additional information', archive: 'Archive',
+            selectHint: 'Choose one of the available options.', nativeHeading: 'Additional information',
+            confirmArchive: 'Archive this field? Existing values and audit history will be kept.' },
+        'pt-BR': { heading: 'Personalize seus registros', add: 'Novo campo', fieldName: 'Nome do campo',
+            edit: 'Editar', saveValues: 'Salvar informações adicionais', archive: 'Arquivar',
+            selectHint: 'Escolha uma das opções disponíveis.', nativeHeading: 'Informações adicionais',
+            confirmArchive: 'Arquivar este campo? Os valores existentes e o histórico serão preservados.' },
+    };
+    assert.ok(localeTexts[locale], 'FS_TEST_LOCALE must be en-GB or pt-BR');
+    const texts = localeTexts[locale];
     const key = 'fs_ui_' + Date.now().toString(36);
     const label = 'Centro de custo (E2E)';
 
@@ -42,19 +55,23 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         await page.waitForTimeout(1300);
         await page.goto(base + '/' + company + '/field-studio', { waitUntil: 'domcontentloaded' });
         assert.ok(page.url().includes('/field-studio'), 'Login failed or module not accessible');
-        pass('Field Studio settings page opens');
+        assert.ok(await page.getByRole('heading', { name: texts.heading }).count() === 1, 'Incorrect settings locale');
+        pass('Field Studio settings page opens in ' + locale);
 
         await screenshot('field-studio-settings');
-        await page.getByRole('link', { name: /add field|novo campo|criar primeiro campo/i }).first().click();
+        await page.getByRole('link', { name: texts.add }).first().click();
         assert.ok(page.url().endsWith('/field-studio/new'));
-        pass('Native new-field screen opens');
+        assert.ok((await page.locator('label[for="field-label"]').innerText()).includes(texts.fieldName), 'Field label not localized');
+        pass('Native new-field screen opens in ' + locale);
 
         await page.locator('#field-label').fill(label);
         await page.locator('#field-key').fill(key);
         await page.locator('#field-entity').selectOption('invoice');
         await page.locator('#field-type').selectOption('select');
         assert.ok(await page.locator('#field-options').isVisible(), 'Options should appear for select');
-        pass('Selection type reveals options editor');
+        assert.equal((await page.locator('#field-type-description').innerText()).trim(), texts.selectHint,
+            'JavaScript field hints must follow the active locale');
+        pass('Selection type reveals localized options editor');
         await page.locator('#field-options-input').fill('Operações\nComercial\nAdministração');
         await page.locator('#field-description').fill('Selecione o centro responsável pelo documento.');
         await page.locator('#field-default').fill('Operações');
@@ -65,7 +82,7 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         assert.ok((await page.locator('body').innerText()).includes(label), 'Created definition not listed');
         pass('HTML form creates definition');
 
-        await page.getByRole('link', { name: 'Editar ' + label }).click();
+        await page.getByRole('link', { name: texts.edit + ' ' + label }).click();
         await page.locator('#field-label').fill('Centro de custo revisado (E2E)');
         await page.locator('#field-save').click();
         await page.waitForURL(url => url.pathname === '/' + company + '/field-studio');
@@ -76,7 +93,7 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
             { waitUntil: 'domcontentloaded' });
         const input = page.locator('select[name="values[' + key + ']"]');
         await input.selectOption('Comercial');
-        await page.getByRole('button', { name: 'Salvar informações adicionais' }).click();
+        await page.getByRole('button', { name: texts.saveValues }).click();
         await page.waitForTimeout(500);
         assert.equal(await input.inputValue(), 'Comercial');
         pass('HTML record editor saves and reloads a selected value');
@@ -84,12 +101,14 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
 
         await page.goto(base + '/' + company + '/sales/invoices/' + invoice + '/edit',
             { waitUntil: 'domcontentloaded' });
-        await page.getByText('Advanced', { exact: true }).click();
+        await page.getByText(/Advanced|Avançado/i, { exact: true }).first().click();
         const native = page.locator('select[name="custom_fields[' + key + ']"]');
         assert.ok(await native.count() === 1, 'Field must be injected into the native invoice form');
+        assert.equal((await page.locator('#field-studio-native h3').innerText()).trim(), texts.nativeHeading,
+            'Native invoice section must follow the active locale');
         await native.selectOption('Administração');
         await screenshot('field-studio-native-invoice');
-        await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+        await page.getByRole('button', { name: /^(Save|Salvar)$/, exact: true }).first().click();
         await page.waitForTimeout(900);
         assert.ok(page.url().includes('/sales/invoices/' + invoice), 'Native invoice update did not complete');
         await page.goto(base + '/' + company + '/field-studio/records/invoice/' + invoice,
@@ -98,13 +117,18 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         pass('Native Akaunting invoice save persists Field Studio value');
 
         await page.goto(base + '/' + company + '/field-studio', { waitUntil: 'domcontentloaded' });
-        page.once('dialog', dialog => dialog.accept());
-        await page.getByRole('button', { name: 'Arquivar Centro de custo revisado (E2E)' }).click();
+        let archiveConfirmation;
+        page.once('dialog', dialog => {
+            archiveConfirmation = dialog.message();
+            dialog.accept();
+        });
+        await page.getByRole('button', { name: texts.archive + ' Centro de custo revisado (E2E)' }).click();
         await page.waitForTimeout(500);
+        assert.equal(archiveConfirmation, texts.confirmArchive, 'Archive confirmation must be localized');
         assert.ok(!(await page.locator('body').innerText()).includes('Centro de custo revisado (E2E)'));
         pass('HTML form archives definition');
 
-        console.log('UI E2E ALL PASS: ' + checks.length);
+        console.log('UI E2E ALL PASS (' + locale + '): ' + checks.length);
     } finally {
         await browser.close();
     }

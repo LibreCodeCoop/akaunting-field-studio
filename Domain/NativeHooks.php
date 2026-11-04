@@ -31,7 +31,7 @@ final class NativeHooks
 
             $company = (int) ($model->company_id ?? 0);
             $entityId = (int) ($model->id ?? 0);
-            abort_if($company <= 0 || $entityId <= 0 || (int) company_id() !== $company, 403, 'Company mismatch');
+            abort_if($company <= 0 || $entityId <= 0 || (int) company_id() !== $company, 403, trans('field-studio::general.errors.company_mismatch'));
 
             app(Access::class)->record($type, 'write', $entityId);
             app(Fields::class)->saveValues(
@@ -127,7 +127,7 @@ final class NativeHooks
                     $html = '<div class="my-4 px-4">'
                         . '<a class="inline-flex items-center text-sm text-purple hover:underline" href="' . e($url) . '">'
                         . '<span class="material-icons-outlined text-base mr-2" aria-hidden="true">tune</span>'
-                        . 'Informações adicionais (Field Studio)</a></div>';
+                        . e(trans('field-studio::general.native.link')) . '</a></div>';
                     View::startPush('body_end', $html);
                 } catch (\Throwable $exception) {
                     report($exception);

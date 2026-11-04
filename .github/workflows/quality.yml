@@ -25,6 +25,8 @@ jobs:
           while IFS= read -r -d '' file; do
             php -l "$file"
           done < <(find . -type f -name '*.php' -print0)
+      - name: Localization catalogs
+        run: php tests/i18n-check.php
       - name: JSON manifests
         shell: bash
         run: |

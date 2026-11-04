@@ -3,85 +3,73 @@
 
 # Field Studio for Akaunting
 
-**O jeito de trabalhar da sua organização não precisa caber em um formulário engessado.**
+**Your organization has its own way of working. Your accounting software should adapt to it.**
 
-O **Field Studio** é uma extensão de software livre desenvolvida pela [LibreCode](https://github.com/LibreCodeCoop) para personalizar os dados do [Akaunting](https://akaunting.com) sem modificar seu código-fonte nem comprometer os lançamentos contábeis.
+Field Studio is an independent, open-source extension developed by [LibreCode](https://github.com/LibreCodeCoop) for [Akaunting](https://akaunting.com). It lets organizations capture additional structured information without modifying Akaunting's core or changing financial amounts.
 
-Centro de custo, número de contrato, projeto, referência externa, competência gerencial ou responsável pelo documento: cada organização pode registrar as informações de que realmente precisa.
+Cost centers, contract numbers, project references, internal classifications, reporting periods, and document owners are just some examples of information that should live alongside your financial records.
 
-*English: Field Studio is an independent, open-source Akaunting extension that adds customizable, company-scoped metadata fields to financial and administrative records, with an authenticated REST API.*
+## Why Field Studio?
 
-## Por que usar?
-
-| Necessidade | Como o Field Studio ajuda |
+| Business need | What Field Studio provides |
 | --- | --- |
-| Cada área precisa registrar dados próprios | Criação de campos sem desenvolvimento de código |
-| Informações preenchidas de maneira inconsistente | Campos obrigatórios, opções de escolha e validação por tipo |
-| Empresas com regras operacionais distintas | Definições e valores isolados por empresa |
-| Integração com CRM e sistemas externos | API REST completa para configurações e valores |
-| Histórico confiável de alterações | Auditoria de modificações e arquivamento sem perda de registros |
-| Independência de fornecedor | Código licenciado sob AGPL, sem dependência de um aplicativo proprietário |
+| Each team needs different data | Configure additional fields without writing code |
+| Inconsistent manual entry | Required fields, selection lists, defaults, and type validation |
+| Several companies use different processes | Company-scoped field definitions and values |
+| External systems need the same information | Authenticated REST API for configuration and record data |
+| Changes need to be traceable | Audit history and archival that preserves existing values |
+| Avoid vendor lock-in | AGPL-licensed source code and no proprietary Field Studio runtime dependency |
 
-O módulo atende cooperativas, prestadoras de serviços, associações, equipes financeiras e organizações que integram o Akaunting a outros sistemas.
+Field Studio is designed for cooperatives, service providers, associations, finance teams, and organizations integrating Akaunting with CRM, workflow, or reporting tools.
 
-**Importante:** campos personalizados não alteram automaticamente a emissão fiscal, os cálculos de impostos ou os valores contábeis.
+**Scope:** Field Studio adds metadata. It does not independently change tax calculation, fiscal document issuance, accounting entries, or financial totals.
 
-## Funcionalidades
+## Features
 
-- **Autonomia:** cadastre, edite, ative, desative, ordene e arquive campos em **Configurações → Field Studio**.
-- **14 tipos de campo:** texto curto e longo, e-mail, URL, inteiro, decimal exato, percentual, data, horário, data e horário, sim/não, seleção simples, seleção múltipla e referência a contatos.
-- **Formulários mais úteis:** nomes claros, textos de ajuda, valores iniciais, preenchimento obrigatório, visibilidade e largura configurável.
-- **Integração com Akaunting:** campos editáveis nos formulários nativos de faturas e contas a pagar; editores vinculados a transações, contatos, produtos e itens de documentos.
-- **API-first:** operações de criação, leitura, atualização e arquivamento de definições; operações completas de gravação, consulta, substituição, filtragem e exclusão de valores.
-- **Controle e segurança:** permissões do Akaunting, isolamento por empresa, validação de referências, controle de concorrência e trilha de auditoria.
-- **Dados preservados:** tabelas independentes; o arquivamento de um campo não apaga seus valores históricos.
+- **Self-service configuration:** create, update, enable, disable, reorder, and archive custom field definitions in **Settings → Field Studio**.
+- **14 data types:** short and long text, email, URL, integer, exact decimal, percentage, date, time, date and time, yes/no, single selection, multiple selection, and contact reference.
+- **Practical form design:** labels, descriptions, input hints, default values, required fields, visibility, and field width.
+- **Native Akaunting experience:** additional inputs in invoice and bill forms, plus record editors for payments, contacts, products, and document items.
+- **API-first integration:** full CRUD for field definitions and record values, with search and audit endpoints.
+- **Security controls:** Akaunting permissions, company isolation, type validation, optimistic concurrency, and audit trails.
+- **Safe storage:** independent namespaced tables; archiving a field does not erase previously recorded data.
+- **Localization:** the interface follows the active Akaunting locale. English (en-GB) and Brazilian Portuguese (pt-BR) translations are included.
 
-## Exemplo de aplicação
+## Example
 
-Uma organização pode criar o campo **Centro de custo** para faturas, com as opções **Operações**, **Comercial** e **Administração**, exigindo a seleção no preenchimento. Essa informação passa a acompanhar cada fatura e pode ser consultada pela API, sem alterar seu total financeiro.
+A team creates a required **Cost center** selection for sales invoices, with **Operations**, **Sales**, and **Administration** as options. Each invoice stores the selected value separately from its accounting fields, and connected systems can retrieve it through the API.
 
-## Compatibilidade
+Field names, descriptions, and options entered by users are business data. They are **not automatically translated** when someone switches languages; the Field Studio interface itself is localized.
 
-| Componente | Validação realizada |
-| --- | --- |
-| Akaunting | 3.2.4 |
-| Laravel | 10.x |
-| PHP | 8.3 |
-| Banco de dados | MySQL 8.x |
-| Interface | Blade, Tailwind e formulários Vue nativos do Akaunting |
-| Licença | GNU AGPL-3.0-or-later |
+## Installation
 
-Outras versões e bancos de dados exigem testes próprios. Field Studio é um projeto independente, não desenvolvido nem endossado pela Akaunting Inc.
+Back up your Akaunting database and application files before installing a new module.
 
-## Como instalar
-
-Faça backup da aplicação e do banco de dados do Akaunting antes de instalar módulos novos.
-
-1. Copie este repositório para a pasta **modules/FieldStudio** da instalação do Akaunting.
-2. No diretório da aplicação, execute:
+1. Copy the repository to `modules/FieldStudio` inside your Akaunting installation.
+2. Run the following commands from your Akaunting application directory:
 
 ~~~sh
 php artisan module:migrate field-studio --force
-php artisan module:install field-studio 1 pt-BR
+php artisan module:install field-studio 1 en-GB
 php artisan optimize:clear
 php artisan module:list
 ~~~
 
-Substitua o número **1** pelo identificador da empresa escolhida. Instale separadamente nas empresas autorizadas que precisarão do módulo.
+Replace `1` with the company ID that should use the module. The locale argument can match your installation, for example `pt-BR`. Enable the module separately for each authorized company that needs it.
 
-3. Entre no Akaunting, selecione a empresa e abra **Configurações → Field Studio**.
+3. Sign in, select your company, and open **Settings → Field Studio**, or visit `/{company_id}/field-studio`.
 
-As tabelas são **lcc_fieldstudio_definitions**, **lcc_fieldstudio_values** e **lcc_fieldstudio_audits**, acrescidas do prefixo padrão configurado no Akaunting. O módulo não modifica tabelas do aplicativo comercial Custom Fields.
+The module stores its own data in `lcc_fieldstudio_definitions`, `lcc_fieldstudio_values`, and `lcc_fieldstudio_audits` (with the configured Akaunting table prefix, if any). It does not alter the schema of the commercial Custom Fields extension.
 
-## Integração por API
+## REST API
 
-O endpoint base é:
+Base path:
 
 ~~~text
 /api/v1/field-studio
 ~~~
 
-Uma consulta autenticada às definições pode ser feita com:
+Example request using Akaunting's configured authentication and company selection:
 
 ~~~sh
 curl -u admin@example.invalid \
@@ -90,20 +78,12 @@ curl -u admin@example.invalid \
   https://your-akaunting.example/api/v1/field-studio/definitions
 ~~~
 
-O exemplo utiliza credenciais sintéticas. Em instalações reais, use HTTPS e uma conta com as permissões adequadas.
+The address is synthetic. Use HTTPS and an account with the appropriate permissions in a real installation.
 
-Consulte a [referência da API](docs/api.md) para métodos HTTP, exemplos de payloads, validação e controle de concorrência.
+See the [API reference](docs/api.md) for methods, request/response examples, input validation, and concurrency handling.
 
-## Qualidade e segurança
+## Support and contributing
 
-Existem testes automatizados de CRUD, tipos de dados, erros de validação, permissões, isolamento por empresa e integração com o formulário de faturas. Os testes de ponta a ponta recusam executar mutações em endereços não locais.
+Field Studio is free software: organizations can host, use, and modify it independently. Implementation assistance, integration, hosting, training, and maintenance can be obtained separately from a provider of their choice.
 
-Os procedimentos estão em [desenvolvimento e testes](docs/development.md) e [operação e reversão](docs/operations.md). Vulnerabilidades devem ser relatadas pelos [avisos privados de segurança](https://github.com/LibreCodeCoop/akaunting-field-studio/security/advisories), não em issues públicas.
-
-## Suporte e colaboração
-
-O Field Studio é software livre. Organizações podem hospedá-lo, utilizá-lo e adaptá-lo, enquanto implantação, integração, treinamento e manutenção podem ser contratados separadamente com o fornecedor de sua escolha.
-
-Contribuições são bem-vindas conforme o [guia de contribuição](CONTRIBUTING.md). Dúvidas e propostas podem ser registradas no [rastreador de issues](https://github.com/LibreCodeCoop/akaunting-field-studio/issues).
-
-**Licença:** [GNU Affero General Public License v3 ou posterior](LICENSE). Copyright © 2026 LibreCode Coop e contribuidores.
+Contributions are welcome under our [contribution guidelines](CONTRIBUTING.md). Please use the [issue tracker](https://github.com/LibreCodeCoop/akaunting-field-studio/issues) for questions and feature proposals.
