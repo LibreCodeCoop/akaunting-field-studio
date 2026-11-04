@@ -1,6 +1,6 @@
 <div class="sm:col-span-6 border-t border-gray-200 mt-4 pt-5" id="field-studio-native">
-    <h3 class="font-medium text-black mb-1">Informações adicionais</h3>
-    <p class="text-sm text-gray-500 mb-4">Campos específicos desta empresa. As alterações também ficam disponíveis pela API.</p>
+    <h3 class="font-medium text-black mb-1">{{ trans('field-studio::general.native.heading') }}</h3>
+    <p class="text-sm text-gray-500 mb-4">{{ trans('field-studio::general.native.intro') }}</p>
     <div class="grid grid-cols-1 sm:grid-cols-6 gap-4">
         @foreach($fields as $field)
             @if($field['is_visible'])
@@ -25,7 +25,7 @@
                             name="custom_fields[{{ $key }}]"
                             v-model="form['custom_fields[{{ $key }}]']"
                             @if($field['is_required']) required @endif>
-                            <option value="">Selecione</option>
+                            <option value="">{{ trans('field-studio::general.native.choose') }}</option>
                             @foreach($field['options'] as $option)
                                 <option value="{{ $option }}" {{ (string)$value === (string)$option ? 'selected' : '' }}>{{ $option }}</option>
                             @endforeach
@@ -46,7 +46,7 @@
                                 name="custom_fields[{{ $key }}]" value="1"
                                 v-model="form['custom_fields[{{ $key }}]']"
                                 {{ (string)$value === '1' ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-600">Sim</span>
+                            <span class="text-sm text-gray-600">{{ trans('field-studio::general.native.yes') }}</span>
                         </label>
                     @elseif($type === 'textarea')
                         <textarea id="native-fs-{{ $key }}" name="custom_fields[{{ $key }}]"

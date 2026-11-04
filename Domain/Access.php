@@ -24,12 +24,12 @@ final class Access
     public function definitions(string $action): void
     {
         $permission = $action === 'read' ? 'read-settings-company' : 'update-settings-company';
-        abort_unless(auth()->check() && auth()->user()->can($permission), 403, 'Insufficient permissions for field definitions');
+        abort_unless(auth()->check() && auth()->user()->can($permission), 403, trans('field-studio::general.errors.access_definitions'));
     }
 
     public function record(string $type, string $action, ?int $entityId = null): void
     {
-        abort_unless(auth()->check(), 401, 'Authentication required');
+        abort_unless(auth()->check(), 401, trans('field-studio::general.errors.auth_required'));
         $permissions = match ($type) {
             'invoice' => ['sales-invoices'],
             'bill' => ['purchases-bills'],
@@ -40,7 +40,7 @@ final class Access
             default => [],
         };
 
-        abort_if($permissions === [], 422, 'Unsupported entity type');
+        abort_if($permissions === [], 422, trans('field-studio::general.errors.unsupported_entity'));
 
         $prefix = $action === 'read' ? 'read-' : 'update-';
         foreach ($permissions as $suffix) {
@@ -49,7 +49,7 @@ final class Access
             }
         }
 
-        abort(403, 'Insufficient permissions for this record');
+        abort(403, trans('field-studio::general.errors.access_record'));
     }
 
     public function canReadRecord(string $type, int $entityId): bool
@@ -71,7 +71,7 @@ final class Access
             ->where('company_id', app(Fields::class)->company())
             ->where('id', $id)->whereNull('deleted_at')->first(['type']);
         if (!$record) {
-            throw new NotFoundHttpException('Contact not found');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.contact_not_found'));
         }
         return match ($record->type) {
             'customer' => ['sales-customers'],
@@ -95,7 +95,7 @@ final class Access
             ->whereNull('parent.deleted_at')
             ->first(['parent.type']);
         if (!$record) {
-            throw new NotFoundHttpException('Document line not found');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.line_not_found'));
         }
         return match ($record->type) {
             'invoice' => ['sales-invoices'],

@@ -34,7 +34,7 @@ final class Fields
     public function company(): int
     {
         $id = function_exists('company_id') ? (int) company_id() : 0;
-        abort_if($id <= 0, 400, 'Missing company context');
+        abort_if($id <= 0, 400, trans('field-studio::general.errors.missing_company'));
         return $id;
     }
 
@@ -63,7 +63,7 @@ final class Fields
             ->where('id', $id)->first();
 
         if (!$row) {
-            throw new NotFoundHttpException('Field definition not found for this company');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.definition_not_found_company'));
         }
 
         return $this->definitionArray($row);
@@ -99,7 +99,7 @@ final class Fields
                 ->where('company_id', $company)->where('entity_type', $fields['entity_type'])
                 ->where('field_key', $fields['field_key'])->exists()) {
                 throw ValidationException::withMessages([
-                    'field_key' => 'This key is already reserved for this entity in this company',
+                    'field_key' => trans('field-studio::general.errors.field_key_reserved'),
                 ]);
             }
 
@@ -111,7 +111,7 @@ final class Fields
                 ], $this->encodeDefinition($fields)));
             } catch (QueryException $e) {
                 if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
-                    throw ValidationException::withMessages(['field_key' => 'This field key is already reserved']);
+                    throw ValidationException::withMessages(['field_key' => trans('field-studio::general.errors.field_key_reserved_simple')]);
                 }
                 throw $e;
             }
@@ -134,7 +134,7 @@ final class Fields
         unset($fields['expected_version']);
 
         if ($expectedVersion !== null && $expectedVersion !== (int) $old['version']) {
-            throw new ConflictHttpException('Field definition changed concurrently');
+            throw new ConflictHttpException(trans('field-studio::general.errors.definition_concurrent'));
         }
 
         $effective = array_merge($old, $fields);
@@ -142,7 +142,7 @@ final class Fields
         if ($effective['field_type'] !== $old['field_type']
             && DB::table('lcc_fieldstudio_values')
                 ->where('company_id', $company)->where('definition_id', $id)->exists()) {
-            throw ValidationException::withMessages(['field_type' => 'Cannot change type while values exist']);
+            throw ValidationException::withMessages(['field_type' => trans('field-studio::general.errors.type_with_values')]);
         }
 
         $this->validateOptions($effective);
@@ -150,7 +150,7 @@ final class Fields
             && DB::table('lcc_fieldstudio_values')
                 ->where('company_id', $company)->where('definition_id', $id)
                 ->whereNotIn('value', $effective['options'])->exists()) {
-            throw ValidationException::withMessages(['options' => 'An option is still used by existing records']);
+            throw ValidationException::withMessages(['options' => trans('field-studio::general.errors.option_in_use')]);
         }
         if ($old['field_type'] === 'multiselect' && array_key_exists('options', $fields)) {
             $rows = DB::table('lcc_fieldstudio_values')
@@ -159,7 +159,7 @@ final class Fields
             foreach ($rows as $value) {
                 $selected = json_decode((string) $value, true, 512, JSON_THROW_ON_ERROR);
                 if (array_diff($selected, $effective['options']) !== []) {
-                    throw ValidationException::withMessages(['options' => 'An option is still used by existing records']);
+                    throw ValidationException::withMessages(['options' => trans('field-studio::general.errors.option_in_use')]);
                 }
             }
         }
@@ -185,7 +185,7 @@ final class Fields
                 ]));
 
             if ($affected !== 1) {
-                throw new ConflictHttpException('Field definition changed concurrently');
+                throw new ConflictHttpException(trans('field-studio::general.errors.definition_concurrent'));
             }
 
             $new = $this->definition($company, $id);
@@ -214,7 +214,7 @@ final class Fields
                 ]);
 
             if ($updated !== 1) {
-                throw new ConflictHttpException('Field definition changed concurrently');
+                throw new ConflictHttpException(trans('field-studio::general.errors.definition_concurrent'));
             }
 
             $this->audit(
@@ -251,12 +251,12 @@ final class Fields
         $fields = Validator::make($input, $rules)->validate();
         if (!$creating && (isset($fields['field_key']) || isset($fields['entity_type']))) {
             throw ValidationException::withMessages([
-                'field_key' => 'Entity and field key cannot change after creation',
+                'field_key' => trans('field-studio::general.errors.immutable_identity'),
             ]);
         }
 
         if ($creating && isset($fields['expected_version'])) {
-            throw ValidationException::withMessages(['expected_version' => 'Not accepted when creating a field']);
+            throw ValidationException::withMessages(['expected_version' => trans('field-studio::general.errors.unexpected_version')]);
         }
 
         return $fields;
@@ -267,7 +267,7 @@ final class Fields
         if (in_array($field['field_type'], ['select', 'multiselect'], true)
             && empty($field['options'])) {
             throw ValidationException::withMessages([
-                'options' => 'Selection fields require at least one option',
+                'options' => trans('field-studio::general.errors.selection_requires_options'),
             ]);
         }
     }
@@ -286,7 +286,7 @@ final class Fields
     public function assertType(string $type): void
     {
         if (!in_array($type, self::ENTITIES, true)) {
-            throw ValidationException::withMessages(['entity_type' => 'Unsupported entity type']);
+            throw ValidationException::withMessages(['entity_type' => trans('field-studio::general.errors.unsupported_entity')]);
         }
     }
 
@@ -294,7 +294,7 @@ final class Fields
     {
         $this->assertType($type);
         if ($id < 1) {
-            throw new NotFoundHttpException('Invalid record ID');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.invalid_record_id'));
         }
         [$table, $subtype] = self::TARGETS[$type];
         $query = DB::table($table)->where('id', $id)
@@ -310,7 +310,7 @@ final class Fields
     public function requireEntity(int $company, string $type, int $id): void
     {
         if (!$this->sourceQuery($company, $type, $id)->exists()) {
-            throw new NotFoundHttpException('Record not found for this company');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.record_not_found_company'));
         }
     }
 
@@ -348,13 +348,13 @@ final class Fields
     ): array {
         $this->assertType($type);
         if (count($values) > 100) {
-            throw ValidationException::withMessages(['values' => 'Too many fields']);
+            throw ValidationException::withMessages(['values' => trans('field-studio::general.errors.too_many_fields')]);
         }
 
         return DB::transaction(function () use ($company, $type, $id, $values, $versions, $actor): array {
             // Parent row lock serializes simultaneous first-value creations.
             if (!$this->sourceQuery($company, $type, $id)->lockForUpdate()->first(['id'])) {
-                throw new NotFoundHttpException('Record not found for this company');
+                throw new NotFoundHttpException(trans('field-studio::general.errors.record_not_found_company'));
             }
 
             $definitions = collect($this->definitions($company, $type, true))->keyBy('field_key');
@@ -362,7 +362,7 @@ final class Fields
                 $definition = $definitions->get($key);
                 if (!$definition) {
                     throw ValidationException::withMessages([
-                        "values.$key" => 'Unknown, archived, or disabled field',
+                        "values.$key" => trans('field-studio::general.errors.unknown_field'),
                     ]);
                 }
 
@@ -374,7 +374,7 @@ final class Fields
 
                 $version = $previous ? (int) $previous->version : 0;
                 if (array_key_exists($key, $versions) && (int) $versions[$key] !== $version) {
-                    throw new ConflictHttpException("Field $key changed concurrently");
+                    throw new ConflictHttpException(trans('field-studio::general.errors.value_concurrent', ['key' => $key]));
                 }
 
                 if (($previous && $previous->value === $normalized)
@@ -425,7 +425,7 @@ final class Fields
             foreach ($defs as $key => $definition) {
                 if ($definition['is_required'] && !array_key_exists($key, $values)) {
                     throw ValidationException::withMessages([
-                        "values.$key" => 'Required field is missing from the complete representation',
+                        "values.$key" => trans('field-studio::general.errors.required_missing'),
                     ]);
                 }
                 if (!array_key_exists($key, $values)) {
@@ -441,7 +441,7 @@ final class Fields
         $type = $definition['field_type'];
         if ($value === null || $value === '' || ($type === 'multiselect' && $value === [])) {
             if (!empty($definition['is_required'])) {
-                throw ValidationException::withMessages(['value' => 'This field is required']);
+                throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.value_required')]);
             }
             return null;
         }
@@ -449,27 +449,27 @@ final class Fields
         if ($type === 'boolean') {
             if (in_array($value, [true, 1, '1', 'true'], true)) return '1';
             if (in_array($value, [false, 0, '0', 'false'], true)) return '0';
-            throw ValidationException::withMessages(['value' => 'Expected true or false']);
+            throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.boolean')]);
         }
 
         if ($type === 'multiselect') {
             if (!is_array($value) || count($value) > 100 || !array_is_list($value)) {
-                throw ValidationException::withMessages(['value' => 'Expected a list of selection values']);
+                throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.multiselect_array')]);
             }
             $options = $definition['options'] ?? [];
             if (count($value) !== count(array_unique($value, SORT_REGULAR))) {
-                throw ValidationException::withMessages(['value' => 'Duplicate selections are not permitted']);
+                throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.multiselect_duplicate')]);
             }
             foreach ($value as $choice) {
                 if (!is_string($choice) || !in_array($choice, $options, true)) {
-                    throw ValidationException::withMessages(['value' => 'Selection is not in the permitted options']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.multiselect_option')]);
                 }
             }
             return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
         }
 
         if (!is_string($value) && !is_int($value)) {
-            throw ValidationException::withMessages(['value' => 'Expected a string or an integer']);
+            throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.scalar')]);
         }
         $s = (string) $value;
 
@@ -478,76 +478,76 @@ final class Fields
             case 'textarea':
                 $max = $type === 'textarea' ? 10000 : 4000;
                 if (mb_strlen($s) > $max) {
-                    throw ValidationException::withMessages(['value' => "Text exceeds $max characters"]);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.text_limit', ['max' => $max])]);
                 }
                 break;
             case 'email':
                 if (mb_strlen($s) > 254 || filter_var($s, FILTER_VALIDATE_EMAIL) === false) {
-                    throw ValidationException::withMessages(['value' => 'Invalid email address']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.email')]);
                 }
                 break;
             case 'url':
                 $scheme = parse_url($s, PHP_URL_SCHEME);
                 if (mb_strlen($s) > 2000 || !in_array(strtolower((string) $scheme), ['http', 'https'], true)
                     || filter_var($s, FILTER_VALIDATE_URL) === false) {
-                    throw ValidationException::withMessages(['value' => 'Expected an HTTP or HTTPS URL']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.url')]);
                 }
                 break;
             case 'integer':
                 if (!preg_match('/^-?(0|[1-9][0-9]{0,17})$/D', $s)) {
-                    throw ValidationException::withMessages(['value' => 'Invalid integer']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.integer')]);
                 }
                 break;
             case 'decimal':
             case 'percent':
                 if (!preg_match('/^-?(?:0|[1-9][0-9]{0,15})(?:\.[0-9]{1,6})?$/D', $s)) {
                     throw ValidationException::withMessages([
-                        'value' => 'Use decimal strings, never floating point, with up to six places',
+                        'value' => trans('field-studio::general.errors.decimal'),
                     ]);
                 }
                 if ($type === 'percent'
                     && (bccomp($s, '0', 6) < 0 || bccomp($s, '100', 6) > 0)) {
-                    throw ValidationException::withMessages(['value' => 'Percentage must be between 0 and 100']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.percent')]);
                 }
                 break;
             case 'date':
                 if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $s)) {
-                    throw ValidationException::withMessages(['value' => 'Date must use YYYY-MM-DD']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.date_format')]);
                 }
                 [$year, $month, $day] = array_map('intval', explode('-', $s));
                 if (!checkdate($month, $day, $year)) {
-                    throw ValidationException::withMessages(['value' => 'Invalid calendar date']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.date_invalid')]);
                 }
                 break;
             case 'time':
                 if (!preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9](?::[0-5][0-9])?$/D', $s)) {
-                    throw ValidationException::withMessages(['value' => 'Time must use HH:MM or HH:MM:SS']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.time_format')]);
                 }
                 break;
             case 'datetime':
                 if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $s)) {
-                    throw ValidationException::withMessages(['value' => 'Datetime must use YYYY-MM-DDTHH:MM']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.datetime_format')]);
                 }
                 [$date] = explode('T', $s);
                 [$year, $month, $day] = array_map('intval', explode('-', $date));
                 if (!checkdate($month, $day, $year)) {
-                    throw ValidationException::withMessages(['value' => 'Invalid calendar datetime']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.datetime_invalid')]);
                 }
                 break;
             case 'select':
                 if (!in_array($s, $definition['options'] ?? [], true)) {
-                    throw ValidationException::withMessages(['value' => 'Value is not in selectable options']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.select_option')]);
                 }
                 break;
             case 'contact':
                 if (!ctype_digit($s) || (int) $s < 1
                     || !DB::table('contacts')->where('company_id', $company)
                         ->where('id', (int) $s)->whereNull('deleted_at')->exists()) {
-                    throw ValidationException::withMessages(['value' => 'Contact not found in this company']);
+                    throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.contact_company')]);
                 }
                 break;
             default:
-                throw ValidationException::withMessages(['value' => 'Unsupported field type']);
+                throw ValidationException::withMessages(['value' => trans('field-studio::general.errors.unsupported_type')]);
         }
 
         return $s;
@@ -561,7 +561,7 @@ final class Fields
             ->where('field_key', $key)->whereNull('deleted_at')->first();
 
         if (!$def) {
-            throw new NotFoundHttpException('Field definition not found');
+            throw new NotFoundHttpException(trans('field-studio::general.errors.definition_not_found'));
         }
 
         [$table, $subtype] = self::TARGETS[$type];

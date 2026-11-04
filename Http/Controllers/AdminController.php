@@ -14,32 +14,6 @@ use Modules\FieldStudio\Domain\Fields;
 
 final class AdminController extends Controller
 {
-    private const ENTITIES = [
-        'invoice' => 'Faturas de venda',
-        'bill' => 'Contas a pagar',
-        'transaction' => 'Recebimentos e pagamentos',
-        'contact' => 'Clientes e fornecedores',
-        'item' => 'Produtos e serviços',
-        'document_item' => 'Itens de documentos',
-    ];
-
-    private const TYPES = [
-        'text' => 'Texto curto',
-        'textarea' => 'Texto longo',
-        'email' => 'E-mail',
-        'url' => 'Link (URL)',
-        'integer' => 'Número inteiro',
-        'decimal' => 'Número decimal',
-        'percent' => 'Percentual',
-        'date' => 'Data',
-        'time' => 'Horário',
-        'datetime' => 'Data e horário',
-        'boolean' => 'Sim / Não',
-        'select' => 'Seleção única',
-        'multiselect' => 'Seleção múltipla',
-        'contact' => 'Referência a contato',
-    ];
-
     public function __construct(
         private readonly Fields $fields,
         private readonly Access $access,
@@ -54,8 +28,8 @@ final class AdminController extends Controller
             'definitions' => $this->fields->definitions(
                 $this->fields->company(), is_string($entity) && $entity !== '' ? $entity : null
             ),
-            'entityLabels' => self::ENTITIES,
-            'typeLabels' => self::TYPES,
+            'entityLabels' => trans('field-studio::general.entities'),
+            'typeLabels' => trans('field-studio::general.types'),
         ]);
     }
 
@@ -63,7 +37,7 @@ final class AdminController extends Controller
     {
         $this->access->definitions('write');
         return view('field-studio::definition', [
-            'field' => null, 'entityLabels' => self::ENTITIES, 'typeLabels' => self::TYPES,
+            'field' => null, 'entityLabels' => trans('field-studio::general.entities'), 'typeLabels' => trans('field-studio::general.types'),
         ]);
     }
 
@@ -74,7 +48,7 @@ final class AdminController extends Controller
             $this->fields->company(), $this->normalizeForm($request), $this->access->actor()
         );
 
-        return redirect()->route('field-studio.definitions.index')->with('success', 'Campo criado com sucesso.');
+        return redirect()->route('field-studio.definitions.index')->with('success', trans('field-studio::general.messages.created'));
     }
 
     public function edit(int $definition): View
@@ -82,7 +56,7 @@ final class AdminController extends Controller
         $this->access->definitions('write');
         return view('field-studio::definition', [
             'field' => $this->fields->definition($this->fields->company(), $definition),
-            'entityLabels' => self::ENTITIES, 'typeLabels' => self::TYPES,
+            'entityLabels' => trans('field-studio::general.entities'), 'typeLabels' => trans('field-studio::general.types'),
         ]);
     }
 
@@ -94,7 +68,7 @@ final class AdminController extends Controller
             $this->normalizeForm($request, false), $this->access->actor()
         );
 
-        return redirect()->route('field-studio.definitions.index')->with('success', 'Campo atualizado com sucesso.');
+        return redirect()->route('field-studio.definitions.index')->with('success', trans('field-studio::general.messages.updated'));
     }
 
     public function destroy(int $definition): RedirectResponse
@@ -102,7 +76,7 @@ final class AdminController extends Controller
         $this->access->definitions('write');
         $this->fields->deleteDefinition($this->fields->company(), $definition, $this->access->actor());
         return redirect()->route('field-studio.definitions.index')
-            ->with('success', 'Campo arquivado. Os dados históricos foram preservados.');
+            ->with('success', trans('field-studio::general.messages.archived'));
     }
 
     public function record(string $entity_type, int $entity_id): View
@@ -111,7 +85,7 @@ final class AdminController extends Controller
         return view('field-studio::record', [
             'entity_type' => $entity_type,
             'entity_id' => $entity_id,
-            'entityLabels' => self::ENTITIES,
+            'entityLabels' => trans('field-studio::general.entities'),
             'fields' => $this->fields->readValues($this->fields->company(), $entity_type, $entity_id),
         ]);
     }
@@ -129,7 +103,7 @@ final class AdminController extends Controller
         return redirect()->route('field-studio.records.edit', [
             'entity_type' => $entity_type,
             'entity_id' => $entity_id,
-        ])->with('success', 'Informações adicionais salvas com sucesso.');
+        ])->with('success', trans('field-studio::general.messages.values_saved'));
     }
 
     private function normalizeForm(Request $request, bool $creating = true): array

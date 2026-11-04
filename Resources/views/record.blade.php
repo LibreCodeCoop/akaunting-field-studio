@@ -1,5 +1,5 @@
 <x-layouts.admin>
-    <x-slot name="title">Informações adicionais · Field Studio</x-slot>
+    <x-slot name="title">{{ trans('field-studio::general.record.page_title') }} · Field Studio</x-slot>
     <x-slot name="content">
         @php
             $inputClass = 'w-full text-sm px-3 py-2.5 mt-1 rounded-lg border border-light-gray text-black placeholder-light-gray bg-white focus:outline-none focus:border-purple';
@@ -8,12 +8,11 @@
             <div class="mb-5">
                 <a href="{{ url()->previous() }}" class="inline-flex items-center text-sm text-purple">
                     <span class="material-icons-outlined text-sm mr-1" aria-hidden="true">arrow_back</span>
-                    Voltar ao registro
+                    {{ trans('field-studio::general.record.back') }}
                 </a>
-                <h2 class="text-lg font-medium text-black mt-3">Informações adicionais</h2>
+                <h2 class="text-lg font-medium text-black mt-3">{{ trans('field-studio::general.record.heading') }}</h2>
                 <p class="text-sm text-gray-500 mt-1">
-                    {{ $entityLabels[$entity_type] ?? $entity_type }}, identificador {{ $entity_id }}.
-                    Valores armazenados separadamente dos lançamentos financeiros.
+                    {{ trans('field-studio::general.record.summary', ['entity' => $entityLabels[$entity_type] ?? $entity_type, 'id' => $entity_id]) }}
                 </p>
             </div>
 
@@ -22,7 +21,7 @@
             @endif
             @if ($errors->any())
                 <div role="alert" class="px-4 py-3 bg-red-50 text-red-700 rounded-lg mb-5">
-                    <p class="font-medium">Não foi possível salvar:</p>
+                    <p class="font-medium">{{ trans('field-studio::general.record.error_intro') }}</p>
                     <ul class="list-disc pl-5 text-sm">
                         @foreach($errors->all() as $message)<li>{{ $message }}</li>@endforeach
                     </ul>
@@ -33,7 +32,7 @@
                 @csrf @method('PUT')
                 <x-form.section>
                     <x-slot name="head">
-                        <x-form.section.head title="Dados do registro" description="Preencha somente os atributos relevantes para este registro." />
+                        <x-form.section.head title="{{ trans('field-studio::general.record.section') }}" description="{{ trans('field-studio::general.record.section_description') }}" />
                     </x-slot>
                     <x-slot name="body">
                         @forelse($fields as $field)
@@ -47,7 +46,7 @@
                                 <label for="fs-{{ $key }}" class="block text-sm font-medium text-black">
                                     {{ $field['label'] }}
                                     @if($field['is_required'] && !$disabled)<span class="text-red-500">*</span>@endif
-                                    @if($disabled)<span class="text-xs text-gray-500">(desativado)</span>@endif
+                                    @if($disabled)<span class="text-xs text-gray-500">{{ trans('field-studio::general.record.disabled') }}</span>@endif
                                 </label>
                                 @if($field['description'])
                                     <p class="text-xs text-gray-500 mt-1">{{ $field['description'] }}</p>
@@ -57,7 +56,7 @@
                                 @if($field['field_type'] === 'select')
                                     <select id="fs-{{ $key }}" name="values[{{ $key }}]" class="{{ $inputClass }}"
                                         @if($disabled) disabled @endif @if($field['is_required'] && !$disabled) required @endif>
-                                        <option value="">Selecione</option>
+                                        <option value="">{{ trans('field-studio::general.record.choose') }}</option>
                                         @foreach($field['options'] as $option)
                                             <option value="{{ $option }}" {{ (string)$value === (string)$option ? 'selected' : '' }}>{{ $option }}</option>
                                         @endforeach
@@ -70,7 +69,7 @@
                                             <option value="{{ $option }}" {{ in_array($option, is_array($value) ? $value : [], true) ? 'selected' : '' }}>{{ $option }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais opções.</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.record.choose_multiple') }}</p>
                                 @elseif($field['field_type'] === 'boolean')
                                     @if(!$disabled)<input type="hidden" name="values[{{ $key }}]" value="0">@endif
                                     <label class="inline-flex gap-2 items-center mt-2">
@@ -78,7 +77,7 @@
                                             class="accent-purple"
                                             {{ (string)$value === '1' ? 'checked' : '' }}
                                             @if($disabled) disabled @endif>
-                                        <span class="text-sm text-gray-600">Sim</span>
+                                        <span class="text-sm text-gray-600">{{ trans('field-studio::general.record.yes') }}</span>
                                     </label>
                                 @elseif($field['field_type'] === 'textarea')
                                     <textarea id="fs-{{ $key }}" name="values[{{ $key }}]" rows="4" maxlength="10000"
@@ -101,14 +100,14 @@
                                         placeholder="{{ $field['placeholder'] }}">
                                 @endif
                                 @if($field['field_type'] === 'contact')
-                                    <p class="text-xs text-gray-500 mt-1">Informe o identificador de um contato desta empresa.</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ trans('field-studio::general.record.contact_help') }}</p>
                                 @endif
                             </div>
                         @empty
                             <div class="sm:col-span-6 rounded-xl bg-gray-50 px-5 py-8">
-                                <p class="font-medium text-black">Nenhum campo foi configurado para este registro.</p>
+                                <p class="font-medium text-black">{{ trans('field-studio::general.record.empty') }}</p>
                                 <a href="{{ route('field-studio.definitions.create') }}" class="text-purple text-sm mt-2 inline-block">
-                                    Criar um campo
+                                    {{ trans('field-studio::general.record.create') }}
                                 </a>
                             </div>
                         @endforelse
@@ -117,17 +116,17 @@
                         <x-slot name="foot">
                             <div class="flex items-center gap-4">
                                 <button type="submit" class="px-5 py-2.5 rounded-lg bg-green hover:bg-green-700 text-white">
-                                    Salvar informações adicionais
+                                    {{ trans('field-studio::general.record.save') }}
                                 </button>
                                 <a href="{{ route('field-studio.definitions.index') }}" class="text-sm text-purple">
-                                    Gerenciar campos
+                                    {{ trans('field-studio::general.record.manage') }}
                                 </a>
                             </div>
                         </x-slot>
                     @endif
                 </x-form.section>
             </form>
-            <p class="text-xs text-gray-500 mt-4">As alterações geram histórico auditável e não modificam valores contábeis.</p>
+            <p class="text-xs text-gray-500 mt-4">{{ trans('field-studio::general.record.audit_hint') }}</p>
         </x-form.container>
     </x-slot>
 </x-layouts.admin>
