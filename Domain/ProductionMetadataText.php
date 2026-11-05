@@ -16,7 +16,7 @@ final class ProductionMetadataText
 {
     private const LABELS = [
         'nfse' => 'nfse',
-        'transação do mês' => 'transaction_of_month',
+        'transacao do mes' => 'transaction_of_month',
         'percentual desconto fixo' => 'discount_percentage',
         'cnpj cliente' => 'customer_cnpj',
         'setor' => 'sector',
@@ -38,11 +38,13 @@ final class ProductionMetadataText
         for ($i = 0; $i < count($parts); $i += 2) {
             $line = $parts[$i];
             $newline = $parts[$i + 1] ?? '';
-            if (!preg_match('/^\h*(NFSe|Transação do mês|Percentual desconto fixo|CNPJ cliente|Setor|Arquivar)\h*:\h*(.*?)\h*$/iu', $line, $matches)) {
+            if (!preg_match('/^\h*(NFSe|Transa\x{00E7}\x{00E3}o do m\x{00EA}s|Percentual desconto fixo|CNPJ cliente|Setor|Arquivar)\h*:\h*(.*?)\h*$/iu', $line, $matches)) {
                 $cleaned .= $line . $newline;
                 continue;
             }
-            $label = mb_strtolower($matches[1], 'UTF-8');
+            $label = strtr(mb_strtolower($matches[1], 'UTF-8'), [
+                "\u{00E7}" => 'c', "\u{00E3}" => 'a', "\u{00EA}" => 'e',
+            ]);
             $key = self::LABELS[$label] ?? null;
             if ($key === null) {
                 throw new DomainException('Unexpected metadata label');
@@ -83,9 +85,9 @@ final class ProductionMetadataText
                 }
                 return $digits;
             case 'archive':
-                return match (mb_strtolower($value, 'UTF-8')) {
+                return match (strtr(mb_strtolower($value, 'UTF-8'), ["\u{00E3}" => 'a'])) {
                     'sim', 'true', '1' => '1',
-                    'não', 'nao', 'false', '0' => '0',
+                    'nao', 'false', '0' => '0',
                     default => throw new DomainException('Invalid archive flag'),
                 };
             case 'nfse':
