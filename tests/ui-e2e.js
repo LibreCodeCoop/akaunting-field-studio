@@ -82,6 +82,37 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         assert.ok((await page.locator('body').innerText()).includes(label), 'Created definition not listed');
         pass('HTML form creates definition');
 
+        // The Field Studio index uses Akaunting's table and sortable-link
+        // components, preserving the active record-type filter on each sort.
+        await page.goto(base + '/' + company + '/field-studio?entity_type=invoice',
+            { waitUntil: 'domcontentloaded' });
+        const definitionsTable = page.locator('table#field-studio-definitions');
+        assert.equal(await definitionsTable.count(), 1, 'Native Akaunting table is required');
+        const sortLabel = definitionsTable.locator('thead a[href*="sort=label"]');
+        assert.equal(await sortLabel.count(), 1, 'Field label should be sortable');
+        for (const column of ['entity_type', 'field_type', 'is_enabled']) {
+            assert.equal(await definitionsTable.locator(
+                'thead a[href*="sort=' + column + '"]').count(), 1,
+            column + ' should be sortable');
+        }
+        await sortLabel.click();
+        const asc = new URL(page.url());
+        assert.equal(asc.searchParams.get('sort'), 'label');
+        assert.equal(asc.searchParams.get('direction'), 'asc');
+        assert.equal(asc.searchParams.get('entity_type'), 'invoice');
+        const ascLabels = await page.locator('table#field-studio-definitions tbody tr td:first-child')
+            .allTextContents();
+        await page.locator('table#field-studio-definitions thead a[href*="sort=label"]').click();
+        const desc = new URL(page.url());
+        assert.equal(desc.searchParams.get('sort'), 'label');
+        assert.equal(desc.searchParams.get('direction'), 'desc');
+        assert.equal(desc.searchParams.get('entity_type'), 'invoice');
+        const descLabels = await page.locator('table#field-studio-definitions tbody tr td:first-child')
+            .allTextContents();
+        assert.deepEqual(descLabels, [...ascLabels].reverse(),
+            'Descending names should reverse the ascending table order');
+        pass('Native table uses sortable columns without dropping filters');
+
         await page.getByRole('link', { name: texts.edit + ' ' + label }).click();
         await page.locator('#field-label').fill('Centro de custo revisado (E2E)');
         await page.locator('#field-save').click();

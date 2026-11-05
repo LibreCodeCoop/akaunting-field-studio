@@ -59,49 +59,70 @@
                     </x-link>
                 </div>
             @else
-                <div class="rounded-xl bg-white border border-gray-200 overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="text-gray-500 bg-gray-50 border-b border-gray-200">
-                                <th class="font-medium py-4 px-5">{{ trans('field-studio::general.index.column_field') }}</th>
-                                <th class="font-medium py-4 px-5">{{ trans('field-studio::general.index.column_record') }}</th>
-                                <th class="font-medium py-4 px-5">{{ trans('field-studio::general.index.column_type') }}</th>
-                                <th class="font-medium py-4 px-5">{{ trans('field-studio::general.index.column_status') }}</th>
-                                <th class="font-medium py-4 px-5 text-right">{{ trans('field-studio::general.index.column_actions') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <x-table id="field-studio-definitions">
+                    <x-table.thead>
+                        <x-table.tr>
+                            <x-table.th class="w-4/12">
+                                <x-sortablelink column="label" title="{{ trans('field-studio::general.index.column_field') }}" />
+                            </x-table.th>
+                            <x-table.th class="w-2/12">
+                                <x-sortablelink column="entity_type" title="{{ trans('field-studio::general.index.column_record') }}" />
+                            </x-table.th>
+                            <x-table.th class="w-2/12">
+                                <x-sortablelink column="field_type" title="{{ trans('field-studio::general.index.column_type') }}" />
+                            </x-table.th>
+                            <x-table.th class="w-2/12">
+                                <x-sortablelink column="is_enabled" title="{{ trans('field-studio::general.index.column_status') }}" />
+                            </x-table.th>
+                            <x-table.th class="w-2/12">
+                                {{ trans('field-studio::general.index.column_actions') }}
+                            </x-table.th>
+                        </x-table.tr>
+                    </x-table.thead>
+
+                    <x-table.tbody>
                         @foreach ($definitions as $field)
-                            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                <td class="py-4 px-5">
-                                    <div class="font-medium text-black">{{ $field['label'] }}</div>
-                                    <div class="mt-1 font-mono text-xs text-gray-500">{{ $field['field_key'] }}</div>
-                                    @if($field['description'])
-                                        <div class="text-xs text-gray-500 mt-1">{{ Str::limit($field['description'], 90) }}</div>
-                                    @endif
-                                </td>
-                                <td class="py-4 px-5">{{ $entityLabels[$field['entity_type']] ?? $field['entity_type'] }}</td>
-                                <td class="py-4 px-5">{{ $typeLabels[$field['field_type']] ?? $field['field_type'] }}</td>
-                                <td class="py-4 px-5">
-                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs {{ $field['is_enabled'] ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                            <x-table.tr>
+                                <x-table.td class="w-4/12">
+                                    <x-slot name="first">
+                                        {{ $field['label'] }}
+                                    </x-slot>
+                                    <x-slot name="second">
+                                        <span class="font-mono text-xs text-gray-500">{{ $field['field_key'] }}</span>
+                                    </x-slot>
+                                </x-table.td>
+                                <x-table.td class="w-2/12">
+                                    {{ $entityLabels[$field['entity_type']] ?? $field['entity_type'] }}
+                                </x-table.td>
+                                <x-table.td class="w-2/12">
+                                    {{ $typeLabels[$field['field_type']] ?? $field['field_type'] }}
+                                </x-table.td>
+                                <x-table.td class="w-2/12">
+                                    <span class="{{ $field['is_enabled'] ? 'text-green-700' : 'text-gray-500' }}">
                                         {{ $field['is_enabled'] ? trans('field-studio::general.index.enabled') : trans('field-studio::general.index.disabled') }}
                                     </span>
-                                </td>
-                                <td class="py-4 px-5 text-right whitespace-nowrap">
-                                    <a class="text-purple hover:underline mr-4" href="{{ route('field-studio.definitions.edit', $field['id']) }}" aria-label="{{ trans('field-studio::general.index.edit_field', ['label' => $field['label']]) }}">
+                                </x-table.td>
+                                <x-table.td class="w-2/12">
+                                    <a class="text-purple hover:underline mr-3"
+                                       href="{{ route('field-studio.definitions.edit', $field['id']) }}"
+                                       aria-label="{{ trans('field-studio::general.index.edit_field', ['label' => $field['label']]) }}">
                                         {{ trans('field-studio::general.index.edit') }}
                                     </a>
-                                    <form class="inline" method="post" action="{{ route('field-studio.definitions.destroy', $field['id']) }}"
-                                        onsubmit="return confirm(this.dataset.confirm)" data-confirm="{{ trans('field-studio::general.index.archive_confirm') }}">
+                                    <form class="inline" method="post"
+                                          action="{{ route('field-studio.definitions.destroy', $field['id']) }}"
+                                          onsubmit="return confirm(this.dataset.confirm)"
+                                          data-confirm="{{ trans('field-studio::general.index.archive_confirm') }}">
                                         @csrf @method('DELETE')
-                                        <button class="text-red-600 hover:underline" type="submit" aria-label="{{ trans('field-studio::general.index.archive_field', ['label' => $field['label']]) }}">{{ trans('field-studio::general.index.archive') }}</button>
+                                        <button type="submit" class="text-red-600 hover:underline"
+                                                aria-label="{{ trans('field-studio::general.index.archive_field', ['label' => $field['label']]) }}">
+                                            {{ trans('field-studio::general.index.archive') }}
+                                        </button>
                                     </form>
-                                </td>
-                            </tr>
+                                </x-table.td>
+                            </x-table.tr>
                         @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                    </x-table.tbody>
+                </x-table>
                 <p class="mt-3 text-xs text-gray-500">{{ trans('field-studio::general.index.count', ['count' => count($definitions)]) }}</p>
             @endif
         </x-index.container>
