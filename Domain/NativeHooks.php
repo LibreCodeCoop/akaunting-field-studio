@@ -9,6 +9,8 @@ use App\Models\Banking\Transaction;
 use App\Models\Common\Contact;
 use App\Models\Common\Item;
 use App\Models\Document\Document;
+use App\Events\Api\ResourceShowing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 
 final class NativeHooks
@@ -17,6 +19,7 @@ final class NativeHooks
     {
         $this->persistOnSave();
         $this->injectViews();
+        $this->injectApiResources();
     }
 
     private function persistOnSave(): void
@@ -47,6 +50,47 @@ final class NativeHooks
         Transaction::saved(static fn (Transaction $transaction) => $save($transaction, 'transaction'));
         Contact::saved(static fn (Contact $contact) => $save($contact, 'contact'));
         Item::saved(static fn (Item $item) => $save($item, 'item'));
+    }
+
+    private function injectApiResources(): void
+    {
+        Event::listen(ResourceShowing::class, static function (ResourceShowing $event): void {
+            $model = $event->model;
+            $type = match (true) {
+                $model instanceof Document && in_array($model->type, ['invoice', 'bill'], true) => $model->type,
+                $model instanceof Transaction => 'transaction',
+                default => null,
+            };
+            if ($type === null || !auth()->check()
+                || !request()->boolean('include_field_studio')) {
+                return;
+            }
+            $company = (int) ($model->company_id ?? 0);
+            $id = (int) ($model->id ?? 0);
+            if ($company <= 0 || $id <= 0 || (int) company_id() !== $company) {
+                return;
+            }
+            try {
+                app(Access::class)->record($type, 'read', $id);
+                $values = app(Fields::class)->readValues($company, $type, $id);
+                $structured = [];
+                foreach ($values as $field) {
+                    if (!$field['is_enabled']) {
+                        continue;
+                    }
+                    $structured[$field['field_key']] = [
+                        'value' => $field['value'],
+                        'is_set' => $field['is_set'],
+                    ];
+                }
+                $event->addResource('field_studio', $structured);
+            } catch (\Throwable $error) {
+                // Never break an unrelated Akaunting API response because
+                // a custom field is temporarily unavailable. Consumers
+                // reject a missing field_studio object instead.
+                report($error);
+            }
+        });
     }
 
     private function injectViews(): void

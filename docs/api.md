@@ -77,6 +77,19 @@ Example PATCH request:
 
 When `versions` is supplied, a stale version returns HTTP 409 and does not modify data. Any invalid value rejects the entire transaction. Idempotent writes do not create redundant audit entries.
 
+### Structured values in the native Akaunting API
+
+The existing `GET /api/documents?include_field_studio=1` and
+`GET /api/transactions?include_field_studio=1` endpoints include a
+`field_studio` object for authorized records. The opt-in query parameter
+avoids extra database reads for unrelated API consumers. Keys match the
+field definitions, with `value` and `is_set` for each. This avoids
+additional requests per document/transaction and preserves Akaunting's
+native pagination, filters, company context, and access control.
+The `is_set` flag distinguishes an explicit value from a default.
+If the module or a definition is unavailable, the consumer must fail
+closed rather than parse free-text notes or descriptions.
+
 ## Authentication, authorization, and errors
 
 | HTTP status | Meaning |
