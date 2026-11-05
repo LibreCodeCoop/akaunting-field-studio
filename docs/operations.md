@@ -62,8 +62,8 @@ default:
 ~~~sh
 php modules/FieldStudio/scripts/production-metadata.php --company=1 --definitions
 php modules/FieldStudio/scripts/production-metadata.php --company=1 --definitions --apply --backup-dir=/private/backups
-php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11
-php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11 --apply --backup-dir=/private/backups
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --all
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --all --apply --backup-dir=/private/backups
 ~~~
 
 Compare the financial closing with the pre-migration baseline and verify that
@@ -74,9 +74,17 @@ Only then clean the recognized lines, preserving all unrelated content:
 php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11 --apply --clean --backup-dir=/private/backups
 ~~~
 
-Each run creates a mode-0600 JSONL backup with original text, SHA-256, field
-values, and record identifiers. The script checks concurrent edits and existing
-structured values, verifies read-back before cleanup, and is idempotent.
-No fiscal or monetary fields are changed. Repeat for the preceding period only
-after reconciliation. Do not deploy the parser-free consumer before its source
-records have been normalized; an unmarked record intentionally blocks import.
+Use `--all` for the initial historical normalization, including records with
+missing dates and documents linked from other periods. It checks all records
+for invalid or conflicting source metadata before writing anything. Use
+`--period=YYYY-MM` for subsequent targeted reconciliation or re-runs; the
+two selectors are mutually exclusive.
+
+Each apply run creates a mode-0600 JSONL backup with original text, SHA-256,
+field values, and record identifiers. A failure may leave earlier records
+committed; fix the cause and re-run the same selector idempotently. The script
+checks concurrent edits and existing structured values and verifies read-back
+before optional cleanup. No fiscal or monetary fields are changed. Do not use
+`--clean` until historical accounting values have been independently compared.
+Do not deploy the parser-free consumer before its source records have been
+normalized; an unmarked record intentionally blocks import.
