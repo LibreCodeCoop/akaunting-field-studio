@@ -58,11 +58,10 @@ $types = ['invoice', 'bill', 'transaction'];
 $schema = [
     'transaction_of_month' => ['text', 'Competencia financeira (YYYY-MM)'],
     'discount_percentage' => ['percent', 'Percentual de desconto fixo'],
-    'customer_cnpj' => ['text', 'CNPJ do cliente'],
+    'customer_cnpj' => ['text', 'Cliente atribuído ao custo/receita (CNPJ)'],
     'sector' => ['text', 'Setor do cliente'],
-    'archive' => ['boolean', 'Arquivar na producao cooperativista'],
+    'archive' => ['boolean', 'Ignorar na produção cooperativista'],
     'nfse' => ['text', 'Referencia NFS-e'],
-    'production_metadata_migrated' => ['boolean', 'Metadados da producao normalizados'],
 ];
 
 if (array_key_exists('definitions', $options)) {
@@ -235,7 +234,7 @@ $cleaned = 0;
 try {
     foreach ($selected as $key => $item) {
         $data = $parsed[$key];
-        $values = $data['values'] + ['production_metadata_migrated' => '1'];
+        $values = $data['values'];
         $snapshot = [
             'company_id' => $company, 'type' => $item['type'], 'id' => $item['id'],
             'column' => $item['column'], 'sha256' => hash('sha256', $item['original']),
