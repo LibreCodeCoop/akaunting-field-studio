@@ -47,3 +47,36 @@ Only remove stored metadata after separately approved inventory, export, and ret
 - Localization is selected by the Akaunting user/application locale; field labels and options entered by users are not automatically translated.
 - Field Studio does not change tax amounts, accounting totals, or fiscal document transmission.
 - Compatibility with additional Akaunting versions requires its own test matrix.
+
+## Production Cooperativista metadata normalization
+
+The module can normalize the six free-text metadata keys used by Produção
+Cooperativista and a seventh per-record migration marker. The native Akaunting
+document and transaction API returns these fields only with
+`include_field_studio=1`. Keep company and record permissions intact.
+
+Run the migration script from the installed module in the Akaunting PHP
+container, with a **private, existing backup directory**. Dry-run is the
+default:
+
+~~~sh
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --definitions
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --definitions --apply --backup-dir=/private/backups
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11 --apply --backup-dir=/private/backups
+~~~
+
+Compare the financial closing with the pre-migration baseline and verify that
+the native API exposes `field_studio` with `is_set=true` for each record.
+Only then clean the recognized lines, preserving all unrelated content:
+
+~~~sh
+php modules/FieldStudio/scripts/production-metadata.php --company=1 --period=2026-11 --apply --clean --backup-dir=/private/backups
+~~~
+
+Each run creates a mode-0600 JSONL backup with original text, SHA-256, field
+values, and record identifiers. The script checks concurrent edits and existing
+structured values, verifies read-back before cleanup, and is idempotent.
+No fiscal or monetary fields are changed. Repeat for the preceding period only
+after reconciliation. Do not deploy the parser-free consumer before its source
+records have been normalized; an unmarked record intentionally blocks import.
