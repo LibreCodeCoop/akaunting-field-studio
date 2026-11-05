@@ -23,13 +23,40 @@ final class AdminController extends Controller
     {
         $this->access->definitions('read');
         $entity = $request->query('entity_type');
+        $entityLabels = trans('field-studio::general.entities');
+        $typeLabels = trans('field-studio::general.types');
+        $definitions = $this->fields->definitions(
+            $this->fields->company(), is_string($entity) && $entity !== '' ? $entity : null
+        );
+
+        // Akaunting's x-sortablelink emits these query parameters. Sorting is
+        // deliberately limited to known columns; the default stays sort_order.
+        $sort = $request->query('sort');
+        if (is_string($sort) && in_array($sort, ['label', 'entity_type', 'field_type', 'is_enabled'], true)) {
+            $descending = $request->query('direction') === 'desc';
+            usort($definitions, static function (array $left, array $right) use (
+                $sort, $descending, $entityLabels, $typeLabels
+            ): int {
+                $display = static function (array $field) use ($sort, $entityLabels, $typeLabels): string {
+                    return match ($sort) {
+                        'entity_type' => (string) ($entityLabels[$field['entity_type']] ?? $field['entity_type']),
+                        'field_type' => (string) ($typeLabels[$field['field_type']] ?? $field['field_type']),
+                        'is_enabled' => $field['is_enabled'] ? '1' : '0',
+                        default => (string) $field['label'],
+                    };
+                };
+                $comparison = strnatcasecmp($display($left), $display($right));
+                if ($comparison === 0) {
+                    $comparison = (int) $left['id'] <=> (int) $right['id'];
+                }
+                return $descending ? -$comparison : $comparison;
+            });
+        }
 
         return view('field-studio::index', [
-            'definitions' => $this->fields->definitions(
-                $this->fields->company(), is_string($entity) && $entity !== '' ? $entity : null
-            ),
-            'entityLabels' => trans('field-studio::general.entities'),
-            'typeLabels' => trans('field-studio::general.types'),
+            'definitions' => $definitions,
+            'entityLabels' => $entityLabels,
+            'typeLabels' => $typeLabels,
         ]);
     }
 
