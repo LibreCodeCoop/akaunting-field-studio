@@ -62,19 +62,19 @@
                 <x-table id="field-studio-definitions">
                     <x-table.thead>
                         <x-table.tr>
-                            <x-table.th class="w-4/12">
+                            <x-table.th class="w-5/12 sm:w-4/12">
                                 <x-sortablelink column="label" title="{{ trans('field-studio::general.index.column_field') }}" />
                             </x-table.th>
-                            <x-table.th class="w-2/12">
+                            <x-table.th class="w-3/12 sm:w-2/12">
                                 <x-sortablelink column="entity_type" title="{{ trans('field-studio::general.index.column_record') }}" />
                             </x-table.th>
-                            <x-table.th class="w-2/12">
+                            <x-table.th class="w-2/12" hidden-mobile>
                                 <x-sortablelink column="field_type" title="{{ trans('field-studio::general.index.column_type') }}" />
                             </x-table.th>
-                            <x-table.th class="w-2/12">
+                            <x-table.th class="w-2/12" hidden-mobile>
                                 <x-sortablelink column="is_enabled" title="{{ trans('field-studio::general.index.column_status') }}" />
                             </x-table.th>
-                            <x-table.th class="w-2/12">
+                            <x-table.th class="w-4/12 sm:w-2/12">
                                 {{ trans('field-studio::general.index.column_actions') }}
                             </x-table.th>
                         </x-table.tr>
@@ -83,7 +83,7 @@
                     <x-table.tbody>
                         @foreach ($definitions as $field)
                             <x-table.tr>
-                                <x-table.td class="w-4/12">
+                                <x-table.td class="w-5/12 sm:w-4/12">
                                     <x-slot name="first">
                                         {{ $field['label'] }}
                                     </x-slot>
@@ -91,18 +91,18 @@
                                         <span class="font-mono text-xs text-gray-500">{{ $field['field_key'] }}</span>
                                     </x-slot>
                                 </x-table.td>
-                                <x-table.td class="w-2/12">
+                                <x-table.td class="w-3/12 sm:w-2/12">
                                     {{ $entityLabels[$field['entity_type']] ?? $field['entity_type'] }}
                                 </x-table.td>
-                                <x-table.td class="w-2/12">
+                                <x-table.td class="w-2/12" hidden-mobile>
                                     {{ $typeLabels[$field['field_type']] ?? $field['field_type'] }}
                                 </x-table.td>
-                                <x-table.td class="w-2/12">
+                                <x-table.td class="w-2/12" hidden-mobile>
                                     <span class="{{ $field['is_enabled'] ? 'text-green-700' : 'text-gray-500' }}">
                                         {{ $field['is_enabled'] ? trans('field-studio::general.index.enabled') : trans('field-studio::general.index.disabled') }}
                                     </span>
                                 </x-table.td>
-                                <x-table.td class="w-2/12">
+                                <x-table.td class="w-4/12 sm:w-2/12">
                                     <a class="text-purple hover:underline mr-3"
                                        href="{{ route('field-studio.definitions.edit', $field['id']) }}"
                                        aria-label="{{ trans('field-studio::general.index.edit_field', ['label' => $field['label']]) }}">
