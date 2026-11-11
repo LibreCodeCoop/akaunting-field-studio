@@ -137,15 +137,31 @@ const { chromium } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         assert.ok(await native.count() === 1, 'Field must be injected into the native invoice form');
         assert.equal((await page.locator('#field-studio-native h3').innerText()).trim(), texts.nativeHeading,
             'Native invoice section must follow the active locale');
+        // The initial value must survive Vue Form hydration. Akaunting seeds
+        // selects via their value attribute, not by reading selected options.
+        assert.equal(await native.inputValue(), 'Comercial',
+            'Previously saved select value must remain visible in the native form');
+        pass('Native invoice edit loads an existing Field Studio select value');
         await native.selectOption('Administração');
         await screenshot('field-studio-native-invoice');
         await page.getByRole('button', { name: /^(Save|Salvar)$/, exact: true }).first().click();
         await page.waitForTimeout(900);
         assert.ok(page.url().includes('/sales/invoices/' + invoice), 'Native invoice update did not complete');
+        // Reopening the invoice is essential: an empty Vue model used to
+        // silently clear this field during the next unrelated invoice save.
+        await page.goto(base + '/' + company + '/sales/invoices/' + invoice + '/edit',
+            { waitUntil: 'domcontentloaded' });
+        await page.getByText(/Advanced|Avançado/i, { exact: true }).first().click();
+        const reopened = page.locator('select[name="custom_fields[' + key + ']"]');
+        assert.equal(await reopened.inputValue(), 'Administração',
+            'The native select must retain its saved value after reopening');
+        await page.getByRole('button', { name: /^(Save|Salvar)$/, exact: true }).first().click();
+        await page.waitForTimeout(900);
         await page.goto(base + '/' + company + '/field-studio/records/invoice/' + invoice,
             { waitUntil: 'domcontentloaded' });
-        assert.equal(await page.locator('select[name="values[' + key + ']"]').inputValue(), 'Administração');
-        pass('Native Akaunting invoice save persists Field Studio value');
+        assert.equal(await page.locator('select[name="values[' + key + ']"]').inputValue(), 'Administração',
+            'Saving the invoice again must not delete an unchanged Field Studio selection');
+        pass('Native Akaunting invoice saves and subsequent edits preserve Field Studio values');
 
         await page.goto(base + '/' + company + '/field-studio', { waitUntil: 'domcontentloaded' });
         let archiveConfirmation;

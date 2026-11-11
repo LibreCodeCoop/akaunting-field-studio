@@ -23,6 +23,9 @@
                         <select class="w-full px-3 py-2 mt-1 text-sm border border-light-gray rounded-lg"
                             id="native-fs-{{ $key }}"
                             name="custom_fields[{{ $key }}]"
+                            {{-- Akaunting Form reads select.getAttribute('value'), not the selected option.
+                                 Seed Vue's model before it overwrites the server-rendered selection. --}}
+                            value="{{ $value }}"
                             v-model="form['custom_fields[{{ $key }}]']"
                             @if($field['is_required']) required @endif>
                             <option value="">{{ trans('field-studio::general.native.choose') }}</option>
