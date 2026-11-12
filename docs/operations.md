@@ -51,8 +51,10 @@ Only remove stored metadata after separately approved inventory, export, and ret
 ## Production Cooperativista metadata normalization
 
 The module can normalize the six free-text metadata keys used by Produção
-Cooperativista and a seventh per-record migration marker. The native Akaunting
-document and transaction API returns these fields only with
+Cooperativista. New migrations do not create or write the legacy
+`production_metadata_migrated` marker. Historical marker definitions and
+values are retained until a separately approved, audited archival operation.
+The native Akaunting document and transaction API returns these fields only with
 `include_field_studio=1`. Keep company and record permissions intact.
 
 Run the migration script from the installed module in the Akaunting PHP
@@ -87,4 +89,6 @@ checks concurrent edits and existing structured values and verifies read-back
 before optional cleanup. No fiscal or monetary fields are changed. Do not use
 `--clean` until historical accounting values have been independently compared.
 Do not deploy the parser-free consumer before its source records have been
-normalized; an unmarked record intentionally blocks import.
+normalized. The consumer must validate the required structured values directly,
+not require the retired per-record marker. Preserve existing marker values and
+NFS-e references; do not clear legacy metadata as part of marker retirement.
