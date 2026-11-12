@@ -96,4 +96,4 @@ Successful HTTP tests do not imply compatibility with every Akaunting version. V
 - `Http/Controllers/AdminController.php`: configuration and record UI.
 - `Database/Migrations`: namespaced module tables and indexes.
 
-The module does not modify commercial Custom Fields data. Migration of external applications and tax/accounting logic are outside its scope.
+The module does not modify commercial Custom Fields data. It provides only reusable field definitions, validation, storage, access control, audit and APIs. Organization-specific fields, presets, migration scripts, historical parsers and business rules are outside its scope and must not be bundled with this module.
