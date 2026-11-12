@@ -123,6 +123,9 @@ const { request } = require(process.env.FS_PLAYWRIGHT_PATH || 'playwright');
         let version = resp.body.data.find(v => v.field_key === required.field_key).value_version;
         resp = await call('patch', valuesPath, { values: { [required.field_key]: 'CC-45' }, versions: { [required.field_key]: version } });
         check('PATCH partial update', resp.status === 200 && resp.body.data.find(v => v.field_key === required.field_key).value === 'CC-45', resp);
+        check('PATCH omitting saved production selection retains it',
+            resp.status === 200 && resp.body.data.find(v => v.field_key === select.field_key)?.value === 'Operations'
+            && resp.body.data.find(v => v.field_key === select.field_key)?.is_set === true, resp);
         resp = await call('patch', valuesPath, { values: { [required.field_key]: 'stale' }, versions: { [required.field_key]: version } });
         check('409 on stale version', resp.status === 409, resp);
 
