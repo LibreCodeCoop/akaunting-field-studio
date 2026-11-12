@@ -22,7 +22,7 @@ Cost centers, contract numbers, project references, internal classifications, re
 
 Field Studio is designed for cooperatives, service providers, associations, finance teams, and organizations integrating Akaunting with CRM, workflow, or reporting tools.
 
-**Scope:** Field Studio adds metadata. It does not independently change tax calculation, fiscal document issuance, accounting entries, or financial totals.
+**Scope:** Field Studio provides reusable tools to define, validate and store metadata. Each organization configures its own fields and options through the application or API; no organization-specific configurations, migration scripts or business rules are shipped with the module. Field Studio does not independently change tax calculation, fiscal document issuance, accounting entries, or financial totals.
 
 ## Features
 
